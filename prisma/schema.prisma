@@ -1,0 +1,317 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  clerkId       String?   @unique
+  email         String?   @unique
+  name          String?
+  image         String?
+  role          String    @default("user")
+  emailVerified DateTime?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  articles      Article[]
+  summaries     Summary[]
+  bookmarks     Bookmark[]
+  conversations Conversation[]
+  sources       NewsSource[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([clerkId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model NewsSource {
+  id          String   @id @default(cuid())
+  userId      String?
+  name        String
+  domain      String
+  url         String
+  description String?
+  category    String?
+  status      String   @default("active") // active, paused, error
+  lastCrawlAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articles    Article[]
+  crawlLogs   CrawlLog[]
+
+  @@unique([userId, domain])
+  @@index([userId])
+  @@index([status])
+}
+
+model Article {
+  id            String   @id @default(cuid())
+  sourceId      String
+  userId        String?
+  url           String
+  title         String
+  content       String   @db.Text
+  markdown      String?  @db.Text
+  author        String?
+  publishDate   DateTime?
+  category      String?
+  imageUrl      String?
+  language      String?  @default("en")
+  wordCount     Int?
+  readingTime   Int?     // in minutes
+  sentiment     String?  // positive, neutral, negative
+  sentimentScore Float?
+  isDuplicate   Boolean  @default(false)
+  duplicateOf   String?
+  status        String   @default("pending") // pending, crawled, summarized, error
+
+  source        NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  summary       Summary?
+  bookmarks     Bookmark[]
+  tags          ArticleTag[]
+  crawlLog      CrawlLog?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([url])
+  @@index([sourceId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([publishDate])
+  @@index([category])
+  @@index([sentiment])
+  @@index([isDuplicate])
+}
+
+model Summary {
+  id              String   @id @default(cuid())
+  articleId       String   @unique
+  userId          String?
+  short           String?  @db.Text
+  detailed        String?  @db.Text
+  keyTakeaways    String[]
+  insights        String[]
+  headline        String?
+  alternativeHeadlines String[]
+  conclusion      String?
+  model           String?
+  tokensUsed      Int?
+  processingTime  Float?   // in seconds
+
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([userId])
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?  @default("#3B82F6")
+  icon        String?
+  parentId    String?
+
+  parent      Topic?   @relation("TopicHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Topic[]  @relation("TopicHierarchy")
+  articles    ArticleTag[]
+  conversations Conversation[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([parentId])
+}
+
+model ArticleTag {
+  id        String  @id @default(cuid())
+  articleId String
+  topicId   String
+  relevance Float   @default(1.0)
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  topic     Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, topicId])
+  @@index([topicId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  type      String   @default("bookmark") // bookmark, favorite
+  collection String?
+  note      String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+  @@index([type])
+  @@index([collection])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  userId    String
+  topicId   String?
+  title     String?
+  model     String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic     Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  messages  Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([topicId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  role           String       // user, assistant, system
+  content        String       @db.Text
+  model          String?
+  tokensUsed     Int?
+  sources        String[]     // article IDs referenced
+  metadata       Json?
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model CrawlLog {
+  id          String   @id @default(cuid())
+  sourceId    String
+  articleId   String?  @unique
+  status      String   // pending, running, success, error
+  pagesCrawled Int?
+  pagesTotal  Int?
+  depth       Int      @default(1)
+  error       String?  @db.Text
+  duration    Float?   // in seconds
+  metadata    Json?
+
+  source      NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  article     Article?   @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sourceId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // digest, alert, system
+  title     String
+  message   String?  @db.Text
+  read      Boolean  @default(false)
+  actionUrl String?
+  metadata  Json?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model Digest {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // morning, evening, weekly, monthly
+  title     String
+  content   String   @db.Text
+  articles  String[] // article IDs
+  startDate DateTime
+  endDate   DateTime
+  sent      Boolean  @default(false)
+  sentAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
