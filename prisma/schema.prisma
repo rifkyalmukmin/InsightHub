@@ -12,7 +12,6 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  clerkId       String?   @unique
   email         String?   @unique
   name          String?
   image         String?
@@ -32,7 +31,6 @@ model User {
   notifications Notification[]
 
   @@index([email])
-  @@index([clerkId])
 }
 
 model Account {
@@ -90,6 +88,7 @@ model NewsSource {
   user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   articles    Article[]
   crawlLogs   CrawlLog[]
+  crawlJobs   CrawlJob[]
 
   @@unique([userId, domain])
   @@index([userId])
@@ -314,4 +313,40 @@ model Digest {
   @@index([userId])
   @@index([type])
   @@index([createdAt])
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  identifier String  // IP or user identifier
+  count     Int      @default(1)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([identifier])
+  @@index([identifier])
+  @@index([resetAt])
+}
+
+model CrawlJob {
+  id          String   @id @default(cuid())
+  sourceId    String
+  url         String
+  status      String   @default("pending") // pending, queued, running, completed, failed, cancelled
+  maxPages    Int      @default(10)
+  depth       Int      @default(1)
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  result      Json?
+  error       String?  @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  source      NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([sourceId])
 }

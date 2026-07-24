@@ -1,0 +1,101 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/db/prisma';
+
+const DEFAULT_MAX = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
+const DEFAULT_WINDOW = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
+
+export async function rateLimit(
+  identifier: string,
+  maxRequests: number = DEFAULT_MAX,
+  windowMs: number = DEFAULT_WINDOW
+): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const now = Date.now();
+  const resetAtMs = now + windowMs;
+  const resetAt = new Date(resetAtMs);
+
+  // Clean up expired entries
+  await prisma.rateLimit.deleteMany({
+    where: { resetAt: { lt: new Date() } },
+  });
+
+  // Find or create rate limit entry
+  let entry = await prisma.rateLimit.findUnique({
+    where: { identifier },
+  });
+
+  if (!entry || entry.resetAt < new Date()) {
+    entry = await prisma.rateLimit.upsert({
+      where: { identifier },
+      update: {
+        count: 1,
+        resetAt: resetAt,
+      },
+      create: {
+        identifier,
+        count: 1,
+        resetAt: resetAt,
+      },
+    });
+    return { allowed: true, remaining: maxRequests - 1, resetAt: Math.floor(resetAtMs / 1000) };
+  }
+
+  if (entry.count >= maxRequests) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: Math.floor(entry.resetAt.getTime() / 1000),
+    };
+  }
+
+  entry = await prisma.rateLimit.update({
+    where: { identifier },
+    data: { count: { increment: 1 } },
+  });
+
+  return {
+    allowed: true,
+    remaining: maxRequests - entry.count,
+    resetAt: Math.floor(entry.resetAt.getTime() / 1000),
+  };
+}
+
+export function withRateLimit(
+  handler: (request: Request) => Promise<Response>,
+  maxRequests: number = DEFAULT_MAX,
+  windowMs: number = DEFAULT_WINDOW
+) {
+  return async (request: Request) => {
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+
+    const limit = await rateLimit(ip, maxRequests, windowMs);
+
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Rate limit exceeded. Please try again later.',
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(maxRequests),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limit.resetAt),
+            'Retry-After': String(Math.ceil((limit.resetAt * 1000 - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
+    const response = await handler(request);
+
+    response.headers.set('X-RateLimit-Limit', String(maxRequests));
+    response.headers.set('X-RateLimit-Remaining', String(limit.remaining));
+    response.headers.set('X-RateLimit-Reset', String(limit.resetAt));
+
+    return response;
+  };
+}

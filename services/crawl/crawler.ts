@@ -2,6 +2,7 @@ import { getFirecrawlClient, CrawlOptions, CrawlResult } from '../firecrawl/clie
 import prisma from '@/lib/db/prisma';
 import { getDomain } from '@/lib/utils/format';
 import { slugify } from '@/lib/utils/slugify';
+import { enqueueCrawlJob, completeCrawlJob, failCrawlJob } from '@/lib/utils/jobQueue';
 
 export interface CrawlJob {
   sourceId: string;
@@ -15,7 +16,6 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
   logId: string;
 }> {
   const { url, sourceId, maxPages = 10, depth = 1, userId } = options;
-  const client = getFirecrawlClient();
 
   // Create crawl log
   const log = await prisma.crawlLog.create({
@@ -26,21 +26,23 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
     },
   });
 
-  // Start crawl (async - returns immediately with job ID)
-  const crawlResult = await client.crawlUrl(url, {
-    scrapeOptions: {
-      formats: ['markdown'],
+  // Enqueue job for background processing (persistent queue)
+  const result = await enqueueCrawlJob({
+    sourceId,
+    url,
+    maxPages,
+    depth,
+  });
+
+  // Update crawl log with job reference
+  await prisma.crawlLog.update({
+    where: { id: log.id },
+    data: {
+      metadata: { jobId: result.jobId },
     },
   });
 
-  const jobId = (crawlResult as any).id || (crawlResult as any).jobId || 'unknown';
-
-  // Process results in background without blocking the response
-  processCrawlResults(jobId, log.id, sourceId, userId, log.createdAt.getTime()).catch((err) => {
-    console.error(`Background crawl processing failed for job ${jobId}:`, err);
-  });
-
-  return { jobId, logId: log.id };
+  return { jobId: result.jobId, logId: log.id };
 }
 
 async function processCrawlResults(
@@ -107,6 +109,12 @@ async function processCrawlResults(
       where: { id: sourceId },
       data: { lastCrawlAt: new Date() },
     });
+
+    // Mark job as completed
+    await completeCrawlJob(jobId, {
+      pagesCrawled: processed,
+      pagesTotal: status.data.length,
+    });
   } catch (error) {
     await prisma.crawlLog.update({
       where: { id: logId },
@@ -115,6 +123,10 @@ async function processCrawlResults(
         error: error instanceof Error ? error.message : 'Crawl failed',
       },
     });
+
+    // Mark job as failed (with retry logic)
+    await failCrawlJob(jobId, error instanceof Error ? error.message : 'Crawl failed');
+
     throw error;
   }
 }
@@ -153,7 +165,7 @@ interface CrawledPage {
   userId?: string;
 }
 
-async function processCrawledPage(page: CrawledPage): Promise<void> {
+export async function processCrawledPage(page: CrawledPage): Promise<void> {
   const { data, sourceId, userId } = page;
   const metadata = data.metadata || {};
 

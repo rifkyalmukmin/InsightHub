@@ -57,9 +57,9 @@ export async function generateDigest(
 
   // Build articles text for AI
   const articlesText = articles
-    .map((a: { title: string; source: { name: string }; summary?: { short?: string } | null }, i: number) => {
+    .map((a: any, i: number) => {
       const summary = a.summary?.short || 'No summary available';
-      return `${i + 1}. ${a.title}\n   Source: ${a.source.name}\n   Summary: ${summary}\n`;
+      return `${i + 1}. ${a.title}\n   Source: ${a.source?.name}\n   Summary: ${summary}\n`;
     })
     .join('\n');
 

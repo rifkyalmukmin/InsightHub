@@ -51,7 +51,6 @@
       ]
     },
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "target": "ES2017"
   },
   "include": [

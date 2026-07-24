@@ -85,16 +85,16 @@ export const POST = withRateLimit(async (request: Request) => {
       // PDF - return HTML content that can be converted to PDF client-side
       content = JSON.stringify({
         type: 'pdf-data',
-        articles: articles.map((a: { title?: string; url?: string; author?: string; publishDate?: Date; source?: { name?: string }; category?: string; summary?: { short?: string; keyTakeaways?: string[] }; content?: string }) => ({
-          title: a.title,
-          url: a.url,
-          author: a.author,
-          publishDate: a.publishDate?.toISOString(),
-          source: a.source?.name,
-          category: a.category,
-          summary: a.summary?.short,
-          keyTakeaways: a.summary?.keyTakeaways,
-          content: a.content?.slice(0, 10000),
+        articles: articles.map((a: any) => ({
+          title: a.title ?? undefined,
+          url: a.url ?? undefined,
+          author: a.author ?? undefined,
+          publishDate: a.publishDate ? a.publishDate.toISOString() : undefined,
+          source: a.source?.name ?? undefined,
+          category: a.category ?? undefined,
+          summary: a.summary?.short ?? undefined,
+          keyTakeaways: a.summary?.keyTakeaways ?? undefined,
+          content: a.content ? a.content.slice(0, 10000) : undefined,
         })),
       });
       mimeType = 'application/json';
