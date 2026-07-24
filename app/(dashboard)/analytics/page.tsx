@@ -38,7 +38,7 @@ export default function AnalyticsPage() {
   // Mock data for charts (in production, these would come from the API)
   const articlesByDay = stats?.articlesByDay || Array.from({ length: 7 }, (_, i) => ({
     day: format(new Date(Date.now() - (6 - i) * 86400000), 'MMM dd'),
-    count: Math.floor(Math.random() * 20) + 5,
+    count: 0,
   }));
 
   const categoriesData = stats?.articlesByCategory?.map((c: { category: string; count: number }) => ({

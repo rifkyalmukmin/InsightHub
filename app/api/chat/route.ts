@@ -3,6 +3,8 @@ import { withRateLimit } from '@/lib/utils/rateLimit';
 import { chatWithArticles, createChatStream } from '@/services/openai/chat';
 import prisma from '@/lib/db/prisma';
 import { searchArticles } from '@/services/analytics/search';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/options';
 
 export const POST = withRateLimit(async (request: Request): Promise<NextResponse> => {
   try {
@@ -16,7 +18,8 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
       );
     }
 
-    const userId = body.userId;
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id || body.userId || 'anonymous';
 
     // Search for relevant articles to build context
     const searchResult = await searchArticles({
