@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import { summarizeArticle } from '@/services/openai/summarize';
 import prisma from '@/lib/db/prisma';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const body = await request.json();
     const { articleId, model } = body;
 
@@ -24,6 +29,14 @@ export const POST = withRateLimit(async (request: Request) => {
       return NextResponse.json(
         { success: false, error: 'Article not found' },
         { status: 404 }
+      );
+    }
+
+    // Verify ownership for user-scoped articles
+    if (article.userId && article.userId !== userId) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden' },
+        { status: 403 }
       );
     }
 

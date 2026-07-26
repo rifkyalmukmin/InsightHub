@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || undefined;
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
 
     const sources = await prisma.newsSource.findMany({
-      where: { userId },
+      where: { OR: [{ userId }, { userId: null }] },
       include: {
         _count: { select: { articles: true } },
         crawlLogs: {
@@ -40,8 +42,12 @@ export const GET = withRateLimit(async (request: Request) => {
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const body = await request.json();
-    const { name, domain, url, description, category, userId } = body;
+    const { name, domain, url, description, category } = body;
 
     if (!name || !domain || !url) {
       return NextResponse.json(
@@ -53,7 +59,7 @@ export const POST = withRateLimit(async (request: Request) => {
     // Check for duplicates
     const existing = await prisma.newsSource.findFirst({
       where: {
-        userId: userId || undefined,
+        userId,
         OR: [{ domain }, { url }],
       },
     });
@@ -72,7 +78,7 @@ export const POST = withRateLimit(async (request: Request) => {
         url,
         description,
         category,
-        userId: userId || null,
+        userId,
         status: 'active',
       },
     });

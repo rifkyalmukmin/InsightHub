@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async () => {
@@ -29,6 +30,9 @@ export const GET = withRateLimit(async () => {
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const { name, description, color, icon } = body;
 

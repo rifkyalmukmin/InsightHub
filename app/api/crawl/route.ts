@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 import { startCrawlJob, scrapeUrl } from '@/services/crawl/crawler';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const body = await request.json();
-    const { url, sourceId, maxPages = 10, depth = 1, userId } = body;
+    const { url, sourceId, maxPages = 10, depth = 1 } = body;
 
     if (!url) {
       return NextResponse.json(
@@ -32,6 +37,13 @@ export const POST = withRateLimit(async (request: Request) => {
 
     if (sourceId) {
       source = await prisma.newsSource.findUnique({ where: { id: sourceId } });
+      // Verify ownership if source belongs to a user
+      if (source && source.userId && source.userId !== userId) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden' },
+          { status: 403 }
+        );
+      }
     }
 
     if (!source) {
@@ -40,7 +52,7 @@ export const POST = withRateLimit(async (request: Request) => {
           name: domain,
           domain,
           url,
-          userId: userId || null,
+          userId,
           status: 'active',
         },
       });
@@ -86,7 +98,12 @@ export const POST = withRateLimit(async (request: Request) => {
 
 export const GET = withRateLimit(async () => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const sources = await prisma.newsSource.findMany({
+      where: { OR: [{ userId }, { userId: null }] },
       include: {
         _count: { select: { articles: true } },
         crawlLogs: {

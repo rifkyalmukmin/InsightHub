@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
     const type = searchParams.get('type') || undefined;
     const collection = searchParams.get('collection') || undefined;
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
 
     const where: Record<string, unknown> = { userId };
 
@@ -61,12 +58,16 @@ export const GET = withRateLimit(async (request: Request) => {
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
-    const body = await request.json();
-    const { articleId, userId, type = 'bookmark', collection, note } = body;
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
 
-    if (!articleId || !userId) {
+    const body = await request.json();
+    const { articleId, type = 'bookmark', collection, note } = body;
+
+    if (!articleId) {
       return NextResponse.json(
-        { success: false, error: 'Article ID and User ID are required' },
+        { success: false, error: 'Article ID is required' },
         { status: 400 }
       );
     }
