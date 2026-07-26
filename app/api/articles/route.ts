@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const page = Math.min(Math.max(parseInt(searchParams.get('page') || '1', 10), 1), 100);
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
     const query = searchParams.get('query') || undefined;
     const topic = searchParams.get('topic') || undefined;
     const source = searchParams.get('source') || undefined;
@@ -14,11 +19,11 @@ export const GET = withRateLimit(async (request: Request) => {
     const from = searchParams.get('from') || undefined;
     const to = searchParams.get('to') || undefined;
     const sort = searchParams.get('sort') || 'newest';
-    const userId = searchParams.get('userId') || undefined;
 
-    // Build where clause
+    // Build where clause — restrict to authenticated user's articles
     const where: Record<string, unknown> = {
       isDuplicate: false,
+      OR: [{ userId }, { userId: null }],
     };
 
     if (query) {
@@ -66,7 +71,7 @@ export const GET = withRateLimit(async (request: Request) => {
           source: true,
           tags: { include: { topic: true } },
           bookmarks: {
-            where: userId ? { userId } : undefined,
+            where: { userId },
           },
         },
       }),

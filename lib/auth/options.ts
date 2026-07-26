@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           image: user.image,
+          role: user.role,
         };
       },
     }),
@@ -62,12 +63,22 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }: { session: any; token: any }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
+        session.user.role = token.role ?? 'user';
       }
       return session;
     },
     async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
+      }
+      // On subsequent calls (no user), fetch role from DB if missing
+      if (!token.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        token.role = dbUser?.role ?? 'user';
       }
       return token;
     },
