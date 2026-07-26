@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const body = await request.json();
     const { articleIds, format } = body;
 
@@ -22,7 +27,10 @@ export const POST = withRateLimit(async (request: Request) => {
     }
 
     const articles = await prisma.article.findMany({
-      where: { id: { in: articleIds } },
+      where: {
+        id: { in: articleIds },
+        OR: [{ userId }, { userId: null }],
+      },
       include: {
         summary: true,
         source: true,

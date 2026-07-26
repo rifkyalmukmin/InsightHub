@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import { getDashboardStats } from '@/services/analytics/dashboard';
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || undefined;
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
 
     const stats = await getDashboardStats(userId);
 

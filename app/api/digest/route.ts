@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { getSessionUser } from '@/lib/auth/session';
 import { generateDigest } from '@/services/openai/digest';
+import prisma from '@/lib/db/prisma';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const body = await request.json();
-    const { type, userId } = body;
+    const { type } = body;
 
     if (!type || !['morning', 'evening', 'weekly', 'monthly'].includes(type)) {
       return NextResponse.json(
         { success: false, error: 'Invalid digest type' },
-        { status: 400 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
         { status: 400 }
       );
     }
@@ -42,15 +41,9 @@ export const POST = withRateLimit(async (request: Request) => {
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
-    }
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
 
     const digests = await prisma.digest.findMany({
       where: { userId },
@@ -69,6 +62,3 @@ export const GET = withRateLimit(async (request: Request) => {
     );
   }
 });
-
-// Import prisma for GET handler
-import prisma from '@/lib/db/prisma';

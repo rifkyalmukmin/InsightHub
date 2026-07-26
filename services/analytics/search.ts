@@ -17,6 +17,7 @@ export async function searchArticles(filters: SearchFilters) {
 
   const where: Record<string, unknown> = {
     isDuplicate: false,
+    OR: [{ userId: filters.userId }, { userId: null }],
   };
 
   if (query) {

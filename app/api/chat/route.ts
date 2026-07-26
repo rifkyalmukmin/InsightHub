@@ -3,11 +3,14 @@ import { withRateLimit } from '@/lib/utils/rateLimit';
 import { chatWithArticles, createChatStream } from '@/services/openai/chat';
 import prisma from '@/lib/db/prisma';
 import { searchArticles } from '@/services/analytics/search';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/options';
+import { getSessionUser } from '@/lib/auth/session';
 
 export const POST = withRateLimit(async (request: Request): Promise<NextResponse> => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const body = await request.json();
     const { message, conversationId, topicId, model, stream = false } = body;
 
@@ -18,13 +21,11 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
       );
     }
 
-    const session = await getServerSession(authOptions);
-    const userId = session?.user?.id || body.userId || 'anonymous';
-
     // Search for relevant articles to build context
     const searchResult = await searchArticles({
       query: message,
       limit: 5,
+      userId,
     });
 
     if (searchResult.total === 0) {
@@ -51,7 +52,7 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
     if (!convId) {
       const conversation = await prisma.conversation.create({
         data: {
-          userId: userId || 'anonymous',
+          userId,
           topicId: topicId || null,
           title: message.slice(0, 100),
           model,
