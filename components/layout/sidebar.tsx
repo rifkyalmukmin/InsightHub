@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 import {
@@ -29,6 +30,10 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const userName = session?.user?.name || 'User';
+  const userEmail = session?.user?.email || 'user@example.com';
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen border-r bg-card sticky top-0">
@@ -72,11 +77,11 @@ export function Sidebar() {
       <div className="border-t p-4">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-            U
+            {userInitial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">User</p>
-            <p className="text-xs text-muted-foreground truncate">user@example.com</p>
+            <p className="text-sm font-medium truncate">{userName}</p>
+            <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
           </div>
         </div>
       </div>

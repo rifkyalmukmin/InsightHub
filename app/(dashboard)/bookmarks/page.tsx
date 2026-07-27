@@ -18,7 +18,7 @@ export default function BookmarksPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['bookmarks'],
     queryFn: async () => {
-      const res = await fetch('/api/bookmarks?userId=user');
+      const res = await fetch('/api/bookmarks');
       if (!res.ok) throw new Error('Failed to fetch bookmarks');
       const json = await res.json();
       return json.data || [];
@@ -28,7 +28,7 @@ export default function BookmarksPage() {
   const { data: collectionsData } = useQuery({
     queryKey: ['bookmarks-collections'],
     queryFn: async () => {
-      const res = await fetch('/api/bookmarks?userId=user');
+      const res = await fetch('/api/bookmarks');
       if (!res.ok) throw new Error('Failed to fetch');
       const json = await res.json();
       return json.collections || [];
