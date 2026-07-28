@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, createSourceSchema } from '@/lib/validations';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
@@ -47,14 +48,14 @@ export const POST = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { name, domain, url, description, category } = body;
-
-    if (!name || !domain || !url) {
+    const validation = validateBody(createSourceSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Name, domain, and URL are required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
+    const { name, domain, url, description, category } = validation.data;
 
     // Check for duplicates
     const existing = await prisma.newsSource.findFirst({

@@ -70,7 +70,15 @@ export async function DELETE(
     if (auth.error) return auth.error;
     const userId = auth.user.id;
 
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const idValidation = validateBody(articleIdSchema, { id: rawId });
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { success: false, error: idValidation.error },
+        { status: 400 }
+      );
+    }
+    const { id } = idValidation.data;
 
     // Verify ownership before deleting
     const article = await prisma.article.findUnique({ where: { id } });

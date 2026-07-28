@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, articleIdSchema, updateSourceSchema } from '@/lib/validations';
 
 export async function PUT(
   request: Request,
@@ -11,7 +12,15 @@ export async function PUT(
     if (auth.error) return auth.error;
     const userId = auth.user.id;
 
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const idValidation = validateBody(articleIdSchema, { id: rawId });
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { success: false, error: idValidation.error },
+        { status: 400 }
+      );
+    }
+    const { id } = idValidation.data;
 
     // Verify ownership
     const existing = await prisma.newsSource.findUnique({ where: { id } });
@@ -29,6 +38,13 @@ export async function PUT(
     }
 
     const body = await request.json();
+    const validation = validateBody(updateSourceSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error },
+        { status: 400 }
+      );
+    }
 
     const source = await prisma.newsSource.update({
       where: { id },
