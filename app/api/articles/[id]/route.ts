@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, articleIdSchema } from '@/lib/validations';
 
 export async function GET(
   request: Request,
@@ -11,7 +12,15 @@ export async function GET(
     if (auth.error) return auth.error;
     const userId = auth.user.id;
 
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const idValidation = validateBody(articleIdSchema, { id: rawId });
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { success: false, error: idValidation.error },
+        { status: 400 }
+      );
+    }
+    const { id } = idValidation.data;
 
     const article = await prisma.article.findUnique({
       where: { id },

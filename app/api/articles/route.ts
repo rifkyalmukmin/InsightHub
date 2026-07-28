@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateQuery, articleQuerySchema } from '@/lib/validations';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
@@ -10,15 +11,14 @@ export const GET = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const { searchParams } = new URL(request.url);
-    const page = Math.min(Math.max(parseInt(searchParams.get('page') || '1', 10), 1), 100);
-    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
-    const query = searchParams.get('query') || undefined;
-    const topic = searchParams.get('topic') || undefined;
-    const source = searchParams.get('source') || undefined;
-    const sentiment = searchParams.get('sentiment') || undefined;
-    const from = searchParams.get('from') || undefined;
-    const to = searchParams.get('to') || undefined;
-    const sort = searchParams.get('sort') || 'newest';
+    const queryValidation = validateQuery(articleQuerySchema, searchParams);
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { success: false, error: queryValidation.error },
+        { status: 400 }
+      );
+    }
+    const { page, limit, query, topic, source, sentiment, from, to, sort } = queryValidation.data;
 
     // Build where clause — restrict to authenticated user's articles
     const where: Record<string, unknown> = {
