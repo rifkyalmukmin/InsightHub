@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifySessionToken } from '@/lib/auth/verify-token';
+import { getToken } from 'next-auth/jwt';
 
 const protectedRoutes = [
   '/dashboard',
@@ -27,15 +27,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get session token (supports both http and https cookie variants)
-  const token = request.cookies.get('next-auth.session-token')?.value ||
-                request.cookies.get('__Secure-next-auth.session-token')?.value;
-
-  const secret = process.env.NEXTAUTH_SECRET;
-
-  // Verify the JWT — rejects expired, tampered, or missing tokens
-  const payload = await verifySessionToken(token, secret);
-  const isAuthenticated = payload !== null;
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  const isAuthenticated = !!token;
 
   // If not authenticated and trying to access protected route
   if (isProtectedRoute && !isAuthenticated) {

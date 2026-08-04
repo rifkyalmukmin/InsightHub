@@ -17,13 +17,11 @@ export function ArticleFeed() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [viewMode, setViewMode] = React.useState<ViewMode>('grid');
-  const [page, setPage] = React.useState(1);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedTopic, setSelectedTopic] = React.useState('');
   const [selectedSentiment, setSelectedSentiment] = React.useState('');
 
   const debouncedSearch = useDebouncedCallback((term: string) => {
-    setPage(1);
     const params = new URLSearchParams(searchParams);
     if (term) params.set('q', term);
     else params.delete('q');
@@ -37,7 +35,6 @@ export function ArticleFeed() {
 
   const handleTopicChange = (value: string) => {
     setSelectedTopic(value);
-    setPage(1);
     const params = new URLSearchParams(searchParams);
     if (value) params.set('topic', value);
     else params.delete('topic');
@@ -46,7 +43,6 @@ export function ArticleFeed() {
 
   const handleSentimentChange = (value: string) => {
     setSelectedSentiment(value);
-    setPage(1);
   };
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<{
@@ -76,7 +72,6 @@ export function ArticleFeed() {
   });
 
   const articles = data?.pages?.flatMap(page => page.data || []) || [];
-  const totalPages = data?.pages[data?.pages.length - 1]?.totalPages || 1;
 
   // Load topics for filter
   const { data: topicsData } = useQuery({
@@ -89,7 +84,7 @@ export function ArticleFeed() {
     },
   });
 
-  if (isLoading && page === 1) {
+  if (isLoading) {
     return (
       <div>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -212,10 +207,10 @@ export function ArticleFeed() {
       )}
 
       {/* Pagination */}
-      {page < totalPages && (
+      {hasNextPage && (
         <div className="flex justify-center mt-8">
-          <Button onClick={() => setPage(page + 1)} disabled={isFetchingNextPage}>
-            Load More
+          <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+            {isFetchingNextPage ? 'Loading...' : 'Load More'}
           </Button>
         </div>
       )}

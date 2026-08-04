@@ -49,7 +49,18 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
 
     // Create or get conversation
     let convId = conversationId;
-    if (!convId) {
+    if (convId) {
+      const existing = await prisma.conversation.findUnique({
+        where: { id: convId },
+        select: { userId: true },
+      });
+      if (!existing || existing.userId !== userId) {
+        return NextResponse.json(
+          { success: false, error: 'Conversation not found' },
+          { status: 404 }
+        );
+      }
+    } else {
       const conversation = await prisma.conversation.create({
         data: {
           userId,
@@ -153,6 +164,10 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
+    const auth = await getSessionUser();
+    if (auth.error) return auth.error;
+    const userId = auth.user.id;
+
     const { searchParams } = new URL(request.url);
     const conversationId = searchParams.get('conversationId');
 
@@ -165,16 +180,21 @@ export const GET = withRateLimit(async (request: Request) => {
         },
       });
 
+      if (!conversation || conversation.userId !== userId) {
+        return NextResponse.json(
+          { success: false, error: 'Conversation not found' },
+          { status: 404 }
+        );
+      }
+
       return NextResponse.json({
         success: true,
         data: conversation,
       });
     }
 
-    // List conversations
-    const userId = searchParams.get('userId');
     const conversations = await prisma.conversation.findMany({
-      where: { userId: userId || undefined },
+      where: { userId },
       include: {
         _count: { select: { messages: true } },
         topic: true,

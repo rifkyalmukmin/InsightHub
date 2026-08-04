@@ -21,9 +21,13 @@ export async function searchArticles(filters: SearchFilters) {
   };
 
   if (query) {
-    where.OR = [
-      { title: { contains: query, mode: 'insensitive' } },
-      { content: { contains: query, mode: 'insensitive' } },
+    where.AND = [
+      {
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { content: { contains: query, mode: 'insensitive' } },
+        ],
+      },
     ];
   }
 
