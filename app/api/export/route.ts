@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, exportSchema } from '@/lib/validations';
 import prisma from '@/lib/db/prisma';
 
 export const POST = withRateLimit(async (request: Request) => {
@@ -10,21 +11,15 @@ export const POST = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { articleIds, format } = body;
-
-    if (!articleIds || !Array.isArray(articleIds) || articleIds.length === 0) {
+    const validation = validateBody(exportSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Article IDs are required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
 
-    if (!['pdf', 'markdown', 'csv'].includes(format)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid format. Use pdf, markdown, or csv.' },
-        { status: 400 }
-      );
-    }
+    const { articleIds, format } = validation.data;
 
     const articles = await prisma.article.findMany({
       where: {

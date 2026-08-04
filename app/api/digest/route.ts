@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, digestSchema } from '@/lib/validations';
 import { generateDigest } from '@/services/openai/digest';
 import prisma from '@/lib/db/prisma';
 
@@ -11,14 +12,15 @@ export const POST = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { type } = body;
-
-    if (!type || !['morning', 'evening', 'weekly', 'monthly'].includes(type)) {
+    const validation = validateBody(digestSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Invalid digest type' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
+
+    const { type } = validation.data;
 
     const digest = await generateDigest(type, userId);
 

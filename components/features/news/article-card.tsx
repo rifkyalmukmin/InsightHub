@@ -1,16 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { formatDate, formatRelativeTime, truncate } from '@/lib/utils/format';
-import { ExternalLink, Clock, FileText, Bookmark, Heart, Share2 } from 'lucide-react';
+import { formatRelativeTime, truncate } from '@/lib/utils/format';
+import { ExternalLink, Clock, Bookmark, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils/cn';
 
 export interface ArticleCardProps {
   article: {
@@ -26,13 +27,63 @@ export interface ArticleCardProps {
     category?: string | null;
     sentiment?: string | null;
     readingTime?: number | null;
-    topics: { topic: { name: string; slug: string } }[];
+    topics?: { topic: { name: string; slug: string } }[];
+    tags?: { topic: { name: string; slug: string } }[];
+    bookmarks?: { id: string; type: string }[];
     bookmark?: { id: string; type: string } | null;
   };
 }
 
+function useArticleActions(article: ArticleCardProps['article']) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const isBookmarked = (article.bookmarks?.length ?? 0) > 0 || !!article.bookmark;
+
+  const toggleBookmark = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/bookmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleId: article.id }),
+      });
+      if (!res.ok) throw new Error('Failed to toggle bookmark');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['articles-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      toast({
+        title: data.data ? 'Article bookmarked' : 'Bookmark removed',
+      });
+    },
+    onError: () => {
+      toast({ title: 'Failed to update bookmark', variant: 'destructive' });
+    },
+  });
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/news/${article.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: article.title, url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: 'Link copied to clipboard' });
+      }
+    } catch {
+      // User cancelled share dialog
+    }
+  };
+
+  return { isBookmarked, toggleBookmark, handleShare };
+}
+
 export function ArticleCard({ article }: ArticleCardProps) {
   const hasImage = article.imageUrl;
+  const topics = article.topics ?? article.tags ?? [];
+  const { isBookmarked, toggleBookmark, handleShare } = useArticleActions(article);
 
   return (
     <motion.div
@@ -90,8 +141,8 @@ export function ArticleCard({ article }: ArticleCardProps) {
 
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {article.topics?.slice(0, 2).map((t) => (
-                <Link key={t.topic.slug} href={`/topics/${t.topic.slug}`}>
+              {topics.slice(0, 2).map((t) => (
+                <Link key={t.topic.slug} href={`/news?topic=${t.topic.slug}`}>
                   <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-primary/10">
                     {t.topic.name}
                   </Badge>
@@ -106,11 +157,32 @@ export function ArticleCard({ article }: ArticleCardProps) {
               {formatRelativeTime(article.createdAt)}
             </span>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Bookmark className="h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleBookmark.mutate();
+                }}
+                disabled={toggleBookmark.isPending}
+              >
+                <Bookmark className={cn('h-4 w-4', isBookmarked && 'fill-current text-primary')} />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                aria-label="Share article"
+                onClick={handleShare}
+              >
                 <Share2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href={article.url} target="_blank" rel="noopener noreferrer" aria-label="Open original article">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           </div>
@@ -121,6 +193,8 @@ export function ArticleCard({ article }: ArticleCardProps) {
 }
 
 export function ArticleListCard({ article }: ArticleCardProps) {
+  const topics = article.topics ?? article.tags ?? [];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -164,7 +238,7 @@ export function ArticleListCard({ article }: ArticleCardProps) {
                   {formatRelativeTime(article.createdAt)}
                 </span>
                 {article.readingTime && <span>· {article.readingTime} min read</span>}
-                {article.topics?.slice(0, 2).map((t) => (
+                {topics.slice(0, 2).map((t) => (
                   <Badge key={t.topic.slug} variant="outline" className="text-[10px]">
                     {t.topic.name}
                   </Badge>

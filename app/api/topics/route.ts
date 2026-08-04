@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, createTopicSchema } from '@/lib/validations';
+import { slugify } from '@/lib/utils/slugify';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async () => {
@@ -34,16 +36,16 @@ export const POST = withRateLimit(async (request: Request) => {
     if (auth.error) return auth.error;
 
     const body = await request.json();
-    const { name, description, color, icon } = body;
-
-    if (!name) {
+    const validation = validateBody(createTopicSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Topic name is required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
 
-    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    const { name, description, color, icon } = validation.data;
+    const slug = slugify(name);
 
     const topic = await prisma.topic.create({
       data: {

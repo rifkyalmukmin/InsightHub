@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
-import { startCrawlJob, scrapeUrl } from '@/services/crawl/crawler';
+import { validateBody, crawlSchema } from '@/lib/validations';
+import { getCrawlUrlError } from '@/lib/utils/url';
+import { startCrawlJob } from '@/services/crawl/crawler';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
@@ -11,25 +13,25 @@ export const POST = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { url, sourceId, maxPages = 10, depth = 1 } = body;
-
-    if (!url) {
+    const validation = validateBody(crawlSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'URL is required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
 
-    // Validate URL
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(url);
-    } catch {
+    const { url, sourceId, maxPages, depth } = validation.data;
+
+    const urlError = getCrawlUrlError(url);
+    if (urlError) {
       return NextResponse.json(
-        { success: false, error: 'Invalid URL format' },
+        { success: false, error: urlError },
         { status: 400 }
       );
     }
+
+    const parsedUrl = new URL(url);
 
     // Create or get source
     let source;

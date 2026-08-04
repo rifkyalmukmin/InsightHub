@@ -18,7 +18,9 @@ export const GET = withRateLimit(async (request: Request) => {
         { status: 400 }
       );
     }
-    const { page, limit, query, topic, source, sentiment, from, to, sort } = queryValidation.data;
+    const { query, topic, source, sentiment, from, to, sort } = queryValidation.data;
+    const page = queryValidation.data.page ?? 1;
+    const limit = queryValidation.data.limit ?? 20;
 
     // Build where clause — restrict to authenticated user's articles
     const where: Record<string, unknown> = {

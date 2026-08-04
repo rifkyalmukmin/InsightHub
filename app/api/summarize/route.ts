@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, summarizeSchema } from '@/lib/validations';
 import { summarizeArticle } from '@/services/openai/summarize';
 import prisma from '@/lib/db/prisma';
 
@@ -11,14 +12,15 @@ export const POST = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { articleId, model } = body;
-
-    if (!articleId) {
+    const validation = validateBody(summarizeSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Article ID is required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
+
+    const { articleId, model } = validation.data;
 
     const article = await prisma.article.findUnique({
       where: { id: articleId },

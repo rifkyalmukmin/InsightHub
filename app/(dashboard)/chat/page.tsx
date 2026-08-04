@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Send, Bot, User, Loader2, RefreshCw, Plus } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { SafeMarkdown } from '@/components/ui/safe-markdown';
 import { cn } from '@/lib/utils/cn';
 import { motion } from 'framer-motion';
 
@@ -127,13 +127,13 @@ export default function ChatPage() {
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center mt-6">
                     <Badge variant="outline" className="cursor-pointer text-sm py-2 px-3">
-                      "Summarize AI news this week"
+                      Summarize AI news this week
                     </Badge>
                     <Badge variant="outline" className="cursor-pointer text-sm py-2 px-3">
-                      "What are the top stories?"
+                      What are the top stories?
                     </Badge>
                     <Badge variant="outline" className="cursor-pointer text-sm py-2 px-3">
-                      "Compare recent startup funding"
+                      Compare recent startup funding
                     </Badge>
                   </div>
                 </div>
@@ -167,7 +167,9 @@ export default function ChatPage() {
                     )}
                   >
                     {msg.role === 'assistant' && msg.content ? (
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <SafeMarkdown className="prose prose-sm dark:prose-invert max-w-none text-sm">
+                        {msg.content}
+                      </SafeMarkdown>
                     ) : (
                       msg.content
                     )}

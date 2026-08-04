@@ -3,6 +3,7 @@ import { withRateLimit } from '@/lib/utils/rateLimit';
 import { chatWithArticles, createChatStream } from '@/services/openai/chat';
 import prisma from '@/lib/db/prisma';
 import { searchArticles } from '@/services/analytics/search';
+import { validateBody, chatSchema } from '@/lib/validations';
 import { getSessionUser } from '@/lib/auth/session';
 
 export const POST = withRateLimit(async (request: Request): Promise<NextResponse> => {
@@ -12,14 +13,15 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { message, conversationId, topicId, model, stream = false } = body;
-
-    if (!message) {
+    const validation = validateBody(chatSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Message is required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
+
+    const { message, conversationId, topicId, model, stream } = validation.data;
 
     // Search for relevant articles to build context
     const searchResult = await searchArticles({

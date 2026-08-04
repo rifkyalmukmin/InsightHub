@@ -1,5 +1,5 @@
-import { enqueueCrawlJob, dequeueCrawlJob, completeCrawlJob, failCrawlJob, cancelCrawlJob, getPendingJobCount, getFailedJobs } from '../lib/utils/jobQueue';
-import prisma from '../lib/db/prisma';
+import { enqueueCrawlJob, dequeueCrawlJob, completeCrawlJob, failCrawlJob, cancelCrawlJob, getPendingJobCount, getFailedJobs } from '@/lib/utils/jobQueue';
+import prisma from '@/lib/db/prisma';
 
 describe('Job Queue', () => {
   beforeEach(async () => {

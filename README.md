@@ -1,156 +1,131 @@
 # InsightHub - AI News Summarizer
 
-A production-ready AI-powered news aggregator that collects articles from various websites using Firecrawl, summarizes them with OpenAI GPT-4.1, categorizes by topic, and provides a modern analytics dashboard.
+AI-powered news aggregator that crawls articles via Firecrawl, summarizes them with OpenAI, and provides an analytics dashboard.
 
 ## Features
 
-### Core Features
-- **🔍 AI News Aggregation**: Automatically crawl and extract articles from configured news sources
-- **🤖 Smart Summarization**: Generate concise summaries using GPT-4.1 with key takeaways
-- **📊 Analytics Dashboard**: Track reading patterns, popular topics, and source statistics
-- **💬 AI Chat Assistant**: Ask questions about your crawled articles using natural language
-- **🔖 Bookmarks & Collections**: Save and organize articles for later reading
-- **🏷️ Auto-Tagging**: Automatic topic classification using AI
-- **📧 Daily Digest**: Personalized news digest delivered to your inbox
-- **🔒 Multi-Provider Auth**: Sign in with Google, GitHub, or email/password
-
-### Technical Features
-- **Next.js 15 App Router**: Latest React Server Components architecture
-- **TypeScript**: Full type safety across the entire stack
-- **Tailwind CSS**: Beautiful, responsive UI with dark mode support
-- **Prisma ORM**: Type-safe database access with PostgreSQL
-- **TanStack Query**: Efficient client-side data fetching and caching
-- **Framer Motion**: Smooth animations and transitions
-- **Recharts**: Interactive data visualizations
-- **shadcn/ui**: Beautiful, accessible component library
+- **AI News Aggregation** — Crawl and extract articles from configured sources
+- **Smart Summarization** — GPT-powered summaries with key takeaways
+- **Analytics Dashboard** — Track topics, sources, and reading patterns
+- **AI Chat Assistant** — Ask questions about your crawled articles
+- **Bookmarks** — Save and organize articles
+- **Multi-Provider Auth** — Google, GitHub, or email/password
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|-----------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| UI Components | shadcn/ui + Radix UI |
-| Animations | Framer Motion |
-| Charts | Recharts |
-| Database | PostgreSQL |
-| ORM | Prisma |
-| Auth | NextAuth.js |
-| AI | OpenAI GPT-4.1 / GPT-4o-mini |
-| Crawling | Firecrawl API |
-| State | TanStack Query |
+Next.js 15 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · NextAuth · OpenAI · Firecrawl
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- PostgreSQL database
+- Node.js 18+
+- PostgreSQL 16+
 - OpenAI API key
 - Firecrawl API key
 - (Optional) Google/GitHub OAuth credentials
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/insighthub.git
-   cd insighthub
-   ```
+```bash
+git clone https://github.com/yourusername/insighthub.git
+cd insighthub
+npm install
+cp .env.example .env.local
+# Edit .env.local with your API keys
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### Database
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Edit `.env.local` and add your API keys:
-   ```env
-   # Database
-   DATABASE_URL="postgresql://user:password@localhost:5432/insighthub"
-   
-   # NextAuth
-   NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-secret-key-here"
-   
-   # OpenAI
-   OPENAI_API_KEY="sk-your-openai-key"
-   
-   # Firecrawl
-   FIRECRAWL_API_KEY="fc-your-firecrawl-key"
-   
-   # OAuth (Optional)
-   GOOGLE_CLIENT_ID="your-google-client-id"
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   GITHUB_CLIENT_ID="your-github-client-id"
-   GITHUB_CLIENT_SECRET="your-github-client-secret"
-   ```
+```bash
+# Start PostgreSQL (Docker)
+npm run docker:up
 
-4. **Set up the database**
-   ```bash
-   npx prisma migrate dev
-   npx prisma generate
-   ```
+# Run migrations
+npx prisma migrate dev
+npx prisma generate
+```
 
-5. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+### Development
 
-6. **Open [http://localhost:3000](http://localhost:3000)**
+```bash
+# Terminal 1 — Next.js dev server
+npm run dev
+
+# Terminal 2 — Background crawl worker (required for crawling)
+npx tsx scripts/worker.ts
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+### Testing
+
+```bash
+npm test          # Run unit tests
+npm run lint      # ESLint
+npm run build     # Production build
+```
+
+## Docker (Full Stack)
+
+```bash
+# Set required env vars in .env or shell
+export NEXTAUTH_SECRET="your-secret-min-32-chars"
+export OPENAI_API_KEY="sk-..."
+export FIRECRAWL_API_KEY="fc-..."
+
+docker-compose up -d
+```
+
+This starts:
+- **postgres** — Database on port 5432
+- **app** — Next.js on port 3000
+- **worker** — Background crawl processor
 
 ## Project Structure
 
 ```
-insighthub/
-├── app/
-│   ├── (dashboard)/          # Protected dashboard pages
-│   │   ├── dashboard/        # Main dashboard
-│   │   ├── news/             # News feed & article detail
-│   │   ├── sources/          # Source management
-│   │   ├── bookmarks/        # Saved articles
-│   │   ├── topics/           # Topic browser
-│   │   ├── chat/             # AI chat assistant
-│   │   ├── analytics/        # Analytics dashboard
-│   │   └── settings/         # User settings
-│   ├── api/                  # API routes
-│   └── sign-in/              # Auth pages
-├── components/
-│   ├── ui/                   # Base UI components
-│   ├── layout/               # Layout components
-│   └── features/             # Feature-specific components
-├── lib/
-│   ├── db/                   # Database client
-│   └── utils/                # Utility functions
-├── services/                 # Business logic services
-├── prisma/                   # Database schema
-└── types/                    # TypeScript types
+app/
+├── (dashboard)/     # Protected pages (shared layout)
+├── api/             # API routes
+└── sign-in/         # Auth pages
+components/
+├── ui/              # Base UI components
+├── layout/          # Shell, sidebar, header
+└── features/        # Feature components
+lib/                 # Auth, db, utils, validations
+services/            # Business logic (crawl, openai, analytics)
+prisma/              # Schema & migrations
+scripts/worker.ts    # Background crawl worker
+tests/               # Jest tests
 ```
+
+## Environment Variables
+
+See `.env.example` for all variables. Required:
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Session encryption key (min 32 chars) |
+| `NEXTAUTH_URL` | App URL (e.g. `http://localhost:3000`) |
+| `OPENAI_API_KEY` | OpenAI API key |
+| `FIRECRAWL_API_KEY` | Firecrawl API key |
 
 ## Deployment
-
-### Docker
-
-```bash
-docker-compose up -d
-```
 
 ### Vercel
 
 1. Push to GitHub
-2. Import project in Vercel
+2. Import in Vercel
 3. Add environment variables
 4. Deploy
+5. Run crawl worker separately (e.g. Railway, Fly.io, or cron)
+
+### Docker
+
+See [Docker (Full Stack)](#docker-full-stack) above.
 
 ## License
 
-MIT License - feel free to use this project for learning or production.
-
----
-
-Built with ❤️ using Next.js 15, TypeScript, and OpenAI
+MIT

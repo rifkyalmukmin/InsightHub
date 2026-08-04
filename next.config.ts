@@ -11,10 +11,6 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.firecrawl.dev',
       },
-      {
-        protocol: 'https',
-        hostname: 'img.clerk.com',
-      },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
+import { validateBody, validateQuery, bookmarkQuerySchema, createBookmarkSchema } from '@/lib/validations';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
@@ -10,8 +11,14 @@ export const GET = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || undefined;
-    const collection = searchParams.get('collection') || undefined;
+    const queryValidation = validateQuery(bookmarkQuerySchema, searchParams);
+    if (!queryValidation.success) {
+      return NextResponse.json(
+        { success: false, error: queryValidation.error },
+        { status: 400 }
+      );
+    }
+    const { type, collection } = queryValidation.data;
 
     const where: Record<string, unknown> = { userId };
 
@@ -63,14 +70,15 @@ export const POST = withRateLimit(async (request: Request) => {
     const userId = auth.user.id;
 
     const body = await request.json();
-    const { articleId, type = 'bookmark', collection, note } = body;
-
-    if (!articleId) {
+    const validation = validateBody(createBookmarkSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Article ID is required' },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
+
+    const { articleId, type, collection, note } = validation.data;
 
     // Check if article exists
     const article = await prisma.article.findUnique({ where: { id: articleId } });
