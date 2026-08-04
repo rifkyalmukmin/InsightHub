@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,8 +61,7 @@ export default function TopicsPage() {
   };
 
   return (
-    <DashboardLayout title="Topics">
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-muted-foreground">Categorize and organize your news</p>
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -179,7 +177,6 @@ export default function TopicsPage() {
             ))}
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

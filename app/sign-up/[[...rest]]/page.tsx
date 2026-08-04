@@ -69,7 +69,7 @@ export default function SignUpPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || 'Registration failed');
+        setError(data.error || data.message || 'Registration failed');
         return;
       }
 

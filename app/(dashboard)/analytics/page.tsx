@@ -2,13 +2,11 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Activity, Clock, FileText, Eye } from 'lucide-react';
-import { format } from 'date-fns';
 
 const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#84CC16', '#F97316'];
 
@@ -25,57 +23,28 @@ export default function AnalyticsPage() {
     },
   });
 
-  const { data: searchStats } = useQuery({
-    queryKey: ['analytics-search', timeRange],
-    queryFn: async () => {
-      const res = await fetch(`/api/search?query=*&period=${timeRange}`);
-      if (!res.ok) throw new Error('Failed to fetch search stats');
-      const json = await res.json();
-      return json.data || {};
-    },
-  });
+  const articlesByDay = stats?.newsPerDay?.map((d: { name: string; value: number }) => ({
+    day: d.name,
+    count: d.value,
+  })) ?? [];
 
-  // Mock data for charts (in production, these would come from the API)
-  const articlesByDay = stats?.articlesByDay || Array.from({ length: 7 }, (_, i) => ({
-    day: format(new Date(Date.now() - (6 - i) * 86400000), 'MMM dd'),
-    count: 0,
-  }));
+  const categoriesData = stats?.categoryDistribution?.map((c: { name: string; value: number }) => ({
+    name: c.name,
+    value: c.value,
+  })) ?? [];
 
-  const categoriesData = stats?.articlesByCategory?.map((c: { category: string; count: number }) => ({
-    name: c.category,
-    value: c.count,
-  })) || [
-    { name: 'Technology', value: 35 },
-    { name: 'Business', value: 25 },
-    { name: 'Science', value: 20 },
-    { name: 'Health', value: 12 },
-    { name: 'Other', value: 8 },
-  ];
-
-  const topicsData = stats?.topTopics?.map((t: { name: string; count: number }) => ({
+  const topicsData = stats?.trendingTopics?.map((t: { name: string; count: number }) => ({
     name: t.name,
     count: t.count,
-  })) || [
-    { name: 'AI', count: 42 },
-    { name: 'Startups', count: 28 },
-    { name: 'Crypto', count: 19 },
-    { name: 'Climate', count: 15 },
-    { name: 'Space', count: 12 },
-  ];
+  })) ?? [];
 
-  const sourcesData = stats?.articlesBySource?.map((s: { name: string; count: number }) => ({
+  const sourcesData = stats?.sourceDistribution?.map((s: { name: string; value: number }) => ({
     name: s.name,
-    articles: s.count,
-  })) || [
-    { name: 'TechCrunch', articles: 45 },
-    { name: 'The Verge', articles: 32 },
-    { name: 'Wired', articles: 28 },
-    { name: 'Ars Technica', articles: 18 },
-  ];
+    articles: s.value,
+  })) ?? [];
 
   return (
-    <DashboardLayout title="Analytics">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-muted-foreground">Track your news consumption patterns</p>
@@ -98,7 +67,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Articles</p>
-                  <h3 className="text-2xl font-bold">{stats?.totalArticles || 0}</h3>
+                  <h3 className="text-2xl font-bold">{stats?.totalNews ?? 0}</h3>
                 </div>
                 <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -108,10 +77,8 @@ export default function AnalyticsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg. Reading Time</p>
-                  <h3 className="text-2xl font-bold">
-                    {stats?.avgReadingTime ? Math.round(stats.avgReadingTime) : 0}m
-                  </h3>
+                  <p className="text-sm text-muted-foreground">Summaries</p>
+                  <h3 className="text-2xl font-bold">{stats?.totalSummaries ?? 0}</h3>
                 </div>
                 <Clock className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -121,8 +88,8 @@ export default function AnalyticsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Articles Read</p>
-                  <h3 className="text-2xl font-bold">{stats?.articlesRead || 0}</h3>
+                  <p className="text-sm text-muted-foreground">Articles Today</p>
+                  <h3 className="text-2xl font-bold">{stats?.newsToday ?? 0}</h3>
                 </div>
                 <Eye className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -132,12 +99,8 @@ export default function AnalyticsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Reading Rate</p>
-                  <h3 className="text-2xl font-bold">
-                    {stats?.totalArticles
-                      ? Math.round(((stats.articlesRead || 0) / stats.totalArticles) * 100)
-                      : 0}%
-                  </h3>
+                  <p className="text-sm text-muted-foreground">This Week</p>
+                  <h3 className="text-2xl font-bold">{stats?.newsThisWeek ?? 0}</h3>
                 </div>
                 <Activity className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -308,7 +271,6 @@ export default function AnalyticsPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

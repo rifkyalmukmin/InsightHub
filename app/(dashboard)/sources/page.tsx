@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,8 +95,7 @@ export default function SourcesPage() {
   };
 
   return (
-    <DashboardLayout title="Sources">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-muted-foreground">Manage your news sources</p>
@@ -316,7 +314,6 @@ export default function SourcesPage() {
             ))}
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

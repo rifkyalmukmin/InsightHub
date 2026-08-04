@@ -46,15 +46,17 @@ export async function PUT(
       );
     }
 
+    const { name, domain, url, description, category, status } = validation.data;
+
     const source = await prisma.newsSource.update({
       where: { id },
       data: {
-        name: body.name,
-        domain: body.domain,
-        url: body.url,
-        description: body.description,
-        category: body.category,
-        status: body.status,
+        ...(name !== undefined && { name }),
+        ...(domain !== undefined && { domain }),
+        ...(url !== undefined && { url }),
+        ...(description !== undefined && { description }),
+        ...(category !== undefined && { category }),
+        ...(status !== undefined && { status }),
       },
     });
 

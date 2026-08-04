@@ -1,4 +1,3 @@
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { StatsCards } from '@/components/features/dashboard/stats-cards';
 import { NewsChart } from '@/components/features/dashboard/news-chart';
 import { CategoryChart } from '@/components/features/dashboard/category-chart';
@@ -7,8 +6,7 @@ import { LatestNews } from '@/components/features/dashboard/latest-news';
 
 export default function DashboardPage() {
   return (
-    <DashboardLayout title="Dashboard">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Welcome */}
         <div className="flex items-center justify-between">
           <div>
@@ -33,7 +31,6 @@ export default function DashboardPage() {
           <TrendingTopics />
           <LatestNews />
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

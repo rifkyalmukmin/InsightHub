@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,8 +45,7 @@ export default function BookmarksPage() {
   });
 
   return (
-    <DashboardLayout title="Bookmarks">
-      <div className="space-y-6">
+    <div className="space-y-6">
         <Tabs defaultValue="all">
           <TabsList>
             <TabsTrigger value="all">All ({bookmarks.length})</TabsTrigger>
@@ -143,7 +141,6 @@ export default function BookmarksPage() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

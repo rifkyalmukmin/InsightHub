@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,19 +41,16 @@ export default function SettingsPage() {
 
   if (status === 'loading') {
     return (
-      <DashboardLayout title="Settings">
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-40" />
-          ))}
-        </div>
-      </DashboardLayout>
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-40" />
+        ))}
+      </div>
     );
   }
 
   return (
-    <DashboardLayout title="Settings">
-      <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl">
         <Tabs defaultValue="profile">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -250,7 +246,6 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

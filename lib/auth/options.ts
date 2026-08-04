@@ -61,18 +61,35 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }: { session: any; token: any }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = (token.id as string) ?? token.sub;
         session.user.role = token.role ?? 'user';
       }
       return session;
     },
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user, account }: { token: any; user: any; account: any }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
       }
-      // On subsequent calls (no user), fetch role from DB if missing
+
+      // OAuth providers use provider IDs as sub — sync Prisma user ID after upsert
+      if (
+        account &&
+        (account.provider === 'google' || account.provider === 'github') &&
+        token.email
+      ) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email as string },
+          select: { id: true, role: true },
+        });
+        if (dbUser) {
+          token.sub = dbUser.id;
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+        }
+      }
+
       if (!token.role && token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -84,8 +101,7 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ user, account }: { user: any; account: any }) {
       if (account?.provider === 'google' || account?.provider === 'github') {
-        // Upsert user in database
-        await prisma.user.upsert({
+        const dbUser = await prisma.user.upsert({
           where: { email: user.email || '' },
           create: {
             email: user.email,
@@ -98,6 +114,8 @@ export const authOptions: NextAuthOptions = {
             image: user.image,
           },
         });
+        user.id = dbUser.id;
+        user.role = dbUser.role;
       }
       return true;
     },

@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,8 +99,7 @@ export default function ChatPage() {
   }, [messages]);
 
   return (
-    <DashboardLayout title="AI Chat">
-      <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">
@@ -205,7 +203,6 @@ export default function ChatPage() {
             )}
           </Button>
         </form>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

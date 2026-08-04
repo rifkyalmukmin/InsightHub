@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,36 +39,31 @@ export default function ArticleDetailPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Article">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-8 w-3/4" />
-          <div className="flex gap-2">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-6 w-20" />)}
-          </div>
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-32 w-full" />
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Skeleton className="h-8 w-3/4" />
+        <div className="flex gap-2">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-6 w-20" />)}
         </div>
-      </DashboardLayout>
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
     );
   }
 
   if (!article) {
     return (
-      <DashboardLayout title="Article">
-        <div className="text-center py-16">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Article not found</h2>
-          <Link href="/news">
-            <Button variant="outline">Back to News</Button>
-          </Link>
-        </div>
-      </DashboardLayout>
+      <div className="text-center py-16">
+        <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Article not found</h2>
+        <Link href="/news">
+          <Button variant="outline">Back to News</Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout title="Article Details">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
         {/* Back button */}
         <Link href="/news">
           <Button variant="ghost" size="sm" className="gap-2">
@@ -240,7 +234,6 @@ export default function ArticleDetailPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }
