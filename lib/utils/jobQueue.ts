@@ -45,15 +45,17 @@ export async function dequeueCrawlJob(): Promise<any> {
 
   if (!job) return null;
 
-  // Claim the job
-  await prisma.crawlJob.update({
-    where: { id: job.id },
+  // Atomically claim the job
+  const claimed = await prisma.crawlJob.updateMany({
+    where: { id: job.id, status: 'pending' },
     data: {
       status: 'running',
       startedAt: new Date(),
       attempts: { increment: 1 },
     },
   });
+
+  if (claimed.count === 0) return null;
 
   return prisma.crawlJob.findUnique({
     where: { id: job.id },

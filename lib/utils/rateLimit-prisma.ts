@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
+import { redisRateLimit } from './rateLimit-redis';
 
 const DEFAULT_MAX = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
 const DEFAULT_WINDOW = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
@@ -9,14 +10,19 @@ export async function rateLimit(
   maxRequests: number = DEFAULT_MAX,
   windowMs: number = DEFAULT_WINDOW
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const redisResult = await redisRateLimit(identifier, maxRequests, windowMs);
+  if (redisResult) return redisResult;
+
   const now = Date.now();
   const resetAtMs = now + windowMs;
   const resetAt = new Date(resetAtMs);
 
-  // Clean up expired entries
-  await prisma.rateLimit.deleteMany({
-    where: { resetAt: { lt: new Date() } },
-  });
+  // Clean up expired entries (only when using DB fallback)
+  if (Math.random() < 0.01) {
+    await prisma.rateLimit.deleteMany({
+      where: { resetAt: { lt: new Date() } },
+    });
+  }
 
   // Find or create rate limit entry
   let entry = await prisma.rateLimit.findUnique({

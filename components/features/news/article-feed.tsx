@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ArticleCard, ArticleListCard, type ArticleCardProps } from './article-card';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,16 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
+import type { ArticleCardProps } from './article-card';
+
+const ArticleCard = dynamic(
+  () => import('./article-card').then((m) => m.ArticleCard),
+  { ssr: false }
+);
+const ArticleListCard = dynamic(
+  () => import('./article-card').then((m) => m.ArticleListCard),
+  { ssr: false }
+);
 
 type ViewMode = 'grid' | 'list';
 

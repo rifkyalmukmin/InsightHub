@@ -61,10 +61,18 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Testing
 
 ```bash
-npm test          # Run unit tests
+npm test          # Unit tests (Jest)
+npm run test:e2e  # E2E tests (Playwright)
 npm run lint      # ESLint
 npm run build     # Production build
 ```
+
+### Optional Services
+
+| Service | Env Variable | Purpose |
+|---------|-------------|---------|
+| Redis | `REDIS_URL` | Faster rate limiting (falls back to PostgreSQL) |
+| SMTP | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Email digest delivery |
 
 ## Docker (Full Stack)
 

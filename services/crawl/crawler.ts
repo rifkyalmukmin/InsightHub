@@ -3,6 +3,7 @@ import prisma from '@/lib/db/prisma';
 import { getDomain } from '@/lib/utils/format';
 import { slugify } from '@/lib/utils/slugify';
 import { enqueueCrawlJob, completeCrawlJob, failCrawlJob } from '@/lib/utils/jobQueue';
+import { triggerCrawlJobProcessing } from '@/services/crawl/processJob';
 
 export interface CrawlJob {
   sourceId: string;
@@ -41,6 +42,9 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
       metadata: { jobId: result.jobId },
     },
   });
+
+  // Process in background — no separate worker required for local dev
+  triggerCrawlJobProcessing(result.jobId, log.id);
 
   return { jobId: result.jobId, logId: log.id };
 }

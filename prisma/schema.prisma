@@ -18,6 +18,7 @@ model User {
   role          String    @default("user")
   emailVerified DateTime?
   password      String?
+  preferences   Json?     @default("{}")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

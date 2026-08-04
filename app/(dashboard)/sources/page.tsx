@@ -12,9 +12,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Edit, RefreshCw, Globe, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils/format';
 import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SourcesPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isPolling, setIsPolling] = React.useState(false);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [isCrawlOpen, setIsCrawlOpen] = React.useState(false);
   const [selectedSource, setSelectedSource] = React.useState<string | null>(null);
@@ -34,7 +37,21 @@ export default function SourcesPage() {
       const json = await res.json();
       return json.data || [];
     },
+    refetchInterval: isPolling ? 3000 : false,
   });
+
+  React.useEffect(() => {
+    if (!isPolling || !sources) return;
+
+    const anyRunning = sources.some(
+      (s: { crawlLogs: { status: string }[] }) => s.crawlLogs[0]?.status === 'running'
+    );
+
+    if (!anyRunning) {
+      setIsPolling(false);
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+    }
+  }, [sources, isPolling, queryClient]);
 
   const addSource = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -75,8 +92,20 @@ export default function SourcesPage() {
       return res.json();
     },
     onSuccess: () => {
+      setIsPolling(true);
+      toast({
+        title: 'Crawl dimulai',
+        description: 'Sedang mengambil berita. Halaman akan diperbarui otomatis.',
+      });
       queryClient.invalidateQueries({ queryKey: ['sources'] });
       setIsCrawlOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: 'Crawl gagal',
+        description: 'Periksa FIRECRAWL_API_KEY dan URL sumber berita.',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -281,6 +310,12 @@ export default function SourcesPage() {
                         <span className="flex items-center gap-1">
                           <CheckCircle2 className="h-4 w-4 text-green-500" />
                           {formatRelativeTime(source.lastCrawlAt)}
+                        </span>
+                      )}
+                      {source.crawlLogs[0]?.status === 'running' && (
+                        <span className="flex items-center gap-1 text-primary">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Crawling...
                         </span>
                       )}
                       {source.crawlLogs[0]?.status === 'error' && (

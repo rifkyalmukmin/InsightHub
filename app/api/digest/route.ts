@@ -3,6 +3,9 @@ import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
 import { validateBody, digestSchema } from '@/lib/validations';
 import { generateDigest } from '@/services/openai/digest';
+import { getUserPreferences } from '@/lib/preferences';
+import { sendDigestEmail } from '@/lib/email/client';
+import { logError } from '@/lib/logger';
 import prisma from '@/lib/db/prisma';
 
 export const POST = withRateLimit(async (request: Request) => {
@@ -24,13 +27,42 @@ export const POST = withRateLimit(async (request: Request) => {
 
     const digest = await generateDigest(type, userId);
 
+    // Send email if user has digest notifications enabled
+    const prefs = await getUserPreferences(userId);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    let emailSent = false;
+    if (
+      user?.email &&
+      prefs.notifications?.digest !== false &&
+      prefs.notifications?.email !== false &&
+      digest.articleIds.length > 0
+    ) {
+      emailSent = await sendDigestEmail(user.email, digest.title, digest.content);
+      if (emailSent) {
+        const latestDigest = await prisma.digest.findFirst({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (latestDigest) {
+          await prisma.digest.update({
+            where: { id: latestDigest.id },
+            data: { sent: true, sentAt: new Date() },
+          });
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      data: digest,
+      data: { ...digest, emailSent },
       message: `${type} digest generated successfully`,
     });
   } catch (error) {
-    console.error('Digest error:', error);
+    logError('Digest POST', error);
     return NextResponse.json(
       {
         success: false,
