@@ -47,7 +47,11 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError(
+          result.error.toLowerCase().includes('too many')
+            ? 'Too many login attempts. Please try again later.'
+            : 'Invalid email or password'
+        );
       } else {
         router.push('/dashboard');
       }

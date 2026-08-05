@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Trash2, Edit, RefreshCw, Globe, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit, RefreshCw, Globe, CheckCircle2, XCircle, Loader2, Newspaper } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils/format';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,8 @@ export default function SourcesPage() {
   const [isPolling, setIsPolling] = React.useState(false);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [isCrawlOpen, setIsCrawlOpen] = React.useState(false);
+  const [isKompasOpen, setIsKompasOpen] = React.useState(false);
+  const [selectedPresets, setSelectedPresets] = React.useState<string[]>([]);
   const [selectedSource, setSelectedSource] = React.useState<string | null>(null);
   const [formData, setFormData] = React.useState({
     name: '',
@@ -29,7 +31,7 @@ export default function SourcesPage() {
     category: '',
   });
 
-  const { data: sources, isLoading } = useQuery({
+  const { data: sources, isLoading, isError, refetch } = useQuery({
     queryKey: ['sources'],
     queryFn: async () => {
       const res = await fetch('/api/sources');
@@ -37,13 +39,16 @@ export default function SourcesPage() {
       const json = await res.json();
       return json.data || [];
     },
-    refetchInterval: isPolling ? 3000 : false,
+    refetchInterval: isPolling ? 5000 : false,
+    placeholderData: (prev) => prev,
   });
 
-  React.useEffect(() => {
-    if (!isPolling || !sources) return;
+  const sourceList = React.useMemo(() => sources ?? [], [sources]);
 
-    const anyRunning = sources.some(
+  React.useEffect(() => {
+    if (!isPolling || sourceList.length === 0) return;
+
+    const anyRunning = sourceList.some(
       (s: { crawlLogs: { status: string }[] }) => s.crawlLogs[0]?.status === 'running'
     );
 
@@ -51,7 +56,7 @@ export default function SourcesPage() {
       setIsPolling(false);
       queryClient.invalidateQueries({ queryKey: ['articles'] });
     }
-  }, [sources, isPolling, queryClient]);
+  }, [sourceList, isPolling, queryClient]);
 
   const addSource = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -80,6 +85,61 @@ export default function SourcesPage() {
       queryClient.invalidateQueries({ queryKey: ['sources'] });
     },
   });
+
+  const { data: kompasPresets, isLoading: presetsLoading } = useQuery({
+    queryKey: ['kompas-presets'],
+    queryFn: async () => {
+      const res = await fetch('/api/sources/presets');
+      if (!res.ok) throw new Error('Failed to fetch presets');
+      const json = await res.json();
+      return json.data || [];
+    },
+    enabled: isKompasOpen,
+  });
+
+  const addKompasPresets = useMutation({
+    mutationFn: async (slugs: string[]) => {
+      const res = await fetch('/api/sources/presets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slugs }),
+      });
+      if (!res.ok) throw new Error('Failed to add presets');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['sources'] });
+      queryClient.invalidateQueries({ queryKey: ['kompas-presets'] });
+      setIsKompasOpen(false);
+      setSelectedPresets([]);
+      toast({
+        title: 'Kategori ditambahkan',
+        description: data.message,
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Gagal menambahkan',
+        description: 'Tidak dapat menambahkan kategori Kompas.id.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  React.useEffect(() => {
+    if (!isKompasOpen || !kompasPresets) return;
+    setSelectedPresets(
+      kompasPresets
+        .filter((p: { added: boolean }) => !p.added)
+        .map((p: { slug: string }) => p.slug)
+    );
+  }, [isKompasOpen, kompasPresets]);
+
+  const togglePreset = (slug: string) => {
+    setSelectedPresets((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+    );
+  };
 
   const crawlSource = useMutation({
     mutationFn: async ({ sourceId, url }: { sourceId: string; url: string }) => {
@@ -116,7 +176,7 @@ export default function SourcesPage() {
 
   const handleCrawl = () => {
     if (selectedSource) {
-      const source = sources?.find((s: { id: string }) => s.id === selectedSource);
+      const source = sourceList.find((s: { id: string }) => s.id === selectedSource);
       if (source) {
         crawlSource.mutate({ sourceId: selectedSource, url: source.url });
       }
@@ -150,7 +210,7 @@ export default function SourcesPage() {
                       onChange={(e) => setSelectedSource(e.target.value)}
                     >
                       <option value="">Select a source...</option>
-                      {sources?.map((s: { id: string; name: string }) => (
+                      {sourceList.map((s: { id: string; name: string }) => (
                         <option key={s.id} value={s.id}>
                           {s.name}
                         </option>
@@ -164,6 +224,103 @@ export default function SourcesPage() {
                   >
                     {crawlSource.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Start Crawling
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog
+              open={isKompasOpen}
+              onOpenChange={(open) => {
+                setIsKompasOpen(open);
+                if (!open) setSelectedPresets([]);
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Newspaper className="h-4 w-4 mr-2" />
+                  Kompas.id
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+                <DialogHeader>
+                  <DialogTitle>Kategori Kompas.id</DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-muted-foreground">
+                  Pilih rubrik berita untuk di-crawl. Gunakan <strong>Berita Terbaru</strong> atau{' '}
+                  <strong>Nasional</strong> untuk hasil terbaik.
+                </p>
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
+                  {presetsLoading ? (
+                    [1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 w-full" />)
+                  ) : (
+                    kompasPresets?.map(
+                      (preset: {
+                        slug: string;
+                        name: string;
+                        description: string;
+                        category: string;
+                        added: boolean;
+                      }) => (
+                        <label
+                          key={preset.slug}
+                          className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                            preset.added
+                              ? 'opacity-50 cursor-not-allowed bg-muted/30'
+                              : selectedPresets.includes(preset.slug)
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={selectedPresets.includes(preset.slug)}
+                            disabled={preset.added}
+                            onChange={() => togglePreset(preset.slug)}
+                          />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm">{preset.name}</p>
+                            <p className="text-xs text-muted-foreground">{preset.description}</p>
+                            {preset.added && (
+                              <Badge variant="secondary" className="text-[10px] mt-1">
+                                Sudah ditambahkan
+                              </Badge>
+                            )}
+                          </div>
+                        </label>
+                      )
+                    )
+                  )}
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      const available =
+                        kompasPresets
+                          ?.filter((p: { added: boolean }) => !p.added)
+                          .map((p: { slug: string }) => p.slug) ?? [];
+                      setSelectedPresets(available);
+                    }}
+                    disabled={presetsLoading}
+                  >
+                    Pilih Semua
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    disabled={
+                      addKompasPresets.isPending ||
+                      selectedPresets.length === 0 ||
+                      presetsLoading
+                    }
+                    onClick={() => addKompasPresets.mutate(selectedPresets)}
+                  >
+                    {addKompasPresets.isPending && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    Tambah ({selectedPresets.length})
                   </Button>
                 </div>
               </DialogContent>
@@ -239,29 +396,49 @@ export default function SourcesPage() {
         </div>
 
         {/* Sources List */}
-        {isLoading ? (
+        {isLoading && sourceList.length === 0 ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-24 w-full" />
             ))}
           </div>
-        ) : sources?.length === 0 ? (
+        ) : isError && sourceList.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-16">
+              <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Gagal memuat sumber</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.
+              </p>
+              <Button variant="outline" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Coba Lagi
+              </Button>
+            </CardContent>
+          </Card>
+        ) : sourceList.length === 0 ? (
           <Card>
             <CardContent className="text-center py-16">
               <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No sources yet</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Add a news source to start crawling articles.
+                Tambahkan kategori Kompas.id atau sumber berita lainnya.
               </p>
-              <Button onClick={() => setIsAddOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Source
-              </Button>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <Button onClick={() => setIsKompasOpen(true)}>
+                  <Newspaper className="h-4 w-4 mr-2" />
+                  Kompas.id
+                </Button>
+                <Button variant="outline" onClick={() => setIsAddOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Source
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
-            {sources.map((source: {
+            {sourceList.map((source: {
               id: string;
               name: string;
               domain: string;

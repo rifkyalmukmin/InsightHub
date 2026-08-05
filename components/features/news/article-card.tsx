@@ -96,10 +96,14 @@ export function ArticleCard({ article }: ArticleCardProps) {
       <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50">
         {hasImage && article.imageUrl && (
           <div className="relative h-40 w-full overflow-hidden">
+            {/* unoptimized: crawled images come from arbitrary domains not listed
+                in next.config remotePatterns, and bypasses the image optimizer
+                (avoids optimizer SSRF surface for untrusted URLs). */}
             <Image
               src={article.imageUrl}
               alt={article.title}
               fill
+              unoptimized
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
@@ -211,6 +215,7 @@ export function ArticleListCard({ article }: ArticleCardProps) {
                   src={article.imageUrl}
                   alt={article.title}
                   fill
+                  unoptimized
                   className="object-cover"
                   sizes="112px"
                 />

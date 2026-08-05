@@ -5,6 +5,7 @@ export interface JobQueueOptions {
   url: string;
   maxPages?: number;
   depth?: number;
+  maxAttempts?: number;
 }
 
 export interface JobQueueResult {
@@ -22,6 +23,7 @@ export async function enqueueCrawlJob(options: JobQueueOptions): Promise<JobQueu
       url: options.url,
       maxPages: options.maxPages ?? 10,
       depth: options.depth ?? 1,
+      maxAttempts: options.maxAttempts ?? 3,
       status: 'pending',
     },
   });

@@ -78,12 +78,14 @@ npm run build     # Production build
 
 ```bash
 # Set required env vars in .env or shell
-export NEXTAUTH_SECRET="your-secret-min-32-chars"
+export NEXTAUTH_SECRET="$(openssl rand -base64 32)"
 export OPENAI_API_KEY="sk-..."
 export FIRECRAWL_API_KEY="fc-..."
 
 docker-compose up -d
 ```
+
+> `NEXTAUTH_SECRET` is **required** (no default) — `docker-compose` will refuse to start without it.
 
 This starts:
 - **postgres** — Database on port 5432

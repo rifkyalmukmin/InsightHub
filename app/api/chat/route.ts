@@ -5,6 +5,7 @@ import prisma from '@/lib/db/prisma';
 import { searchArticles } from '@/services/analytics/search';
 import { validateBody, chatSchema } from '@/lib/validations';
 import { getSessionUser } from '@/lib/auth/session';
+import { internalServerError } from '@/lib/utils/api-error';
 
 export const POST = withRateLimit(async (request: Request): Promise<NextResponse> => {
   try {
@@ -153,14 +154,7 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
       },
     });
   } catch (error) {
-    console.error('Chat error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Chat failed',
-      },
-      { status: 500 }
-    );
+    return internalServerError('Chat POST', error);
   }
 });
 

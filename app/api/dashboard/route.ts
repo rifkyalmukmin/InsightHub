@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
 import { getDashboardStats } from '@/services/analytics/dashboard';
+import { internalServerError } from '@/lib/utils/api-error';
 
 export const GET = withRateLimit(async (request: Request) => {
   try {
@@ -16,13 +17,6 @@ export const GET = withRateLimit(async (request: Request) => {
       data: stats,
     });
   } catch (error) {
-    console.error('Dashboard error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch dashboard data',
-      },
-      { status: 500 }
-    );
+    return internalServerError('Dashboard GET', error);
   }
 });

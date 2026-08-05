@@ -27,9 +27,16 @@ export function ArticleFeed() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [viewMode, setViewMode] = React.useState<ViewMode>('grid');
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [selectedTopic, setSelectedTopic] = React.useState('');
+  // Initialize from URL so deep links like /news?topic=ai actually filter on load.
+  const [searchTerm, setSearchTerm] = React.useState(() => searchParams.get('q') ?? '');
+  const [selectedTopic, setSelectedTopic] = React.useState(() => searchParams.get('topic') ?? '');
   const [selectedSentiment, setSelectedSentiment] = React.useState('');
+
+  // Keep local filter state in sync with the URL (back/forward, topic badge links).
+  React.useEffect(() => {
+    setSearchTerm(searchParams.get('q') ?? '');
+    setSelectedTopic(searchParams.get('topic') ?? '');
+  }, [searchParams]);
 
   const debouncedSearch = useDebouncedCallback((term: string) => {
     const params = new URLSearchParams(searchParams);

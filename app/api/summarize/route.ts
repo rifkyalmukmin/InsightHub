@@ -4,6 +4,7 @@ import { getSessionUser } from '@/lib/auth/session';
 import { validateBody, summarizeSchema } from '@/lib/validations';
 import { summarizeArticle } from '@/services/openai/summarize';
 import prisma from '@/lib/db/prisma';
+import { internalServerError } from '@/lib/utils/api-error';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
@@ -73,13 +74,6 @@ export const POST = withRateLimit(async (request: Request) => {
       message: 'Article summarized successfully',
     });
   } catch (error) {
-    console.error('Summarize error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Summarization failed',
-      },
-      { status: 500 }
-    );
+    return internalServerError('Summarize POST', error);
   }
 });

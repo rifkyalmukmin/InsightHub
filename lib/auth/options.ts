@@ -4,6 +4,10 @@ import GitHub from 'next-auth/providers/github';
 import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 import prisma from '@/lib/db/prisma';
+import { assertSecureAuthSecret } from '@/lib/utils/env';
+
+// Fail fast if NEXTAUTH_SECRET is missing or a known default value.
+assertSecureAuthSecret();
 
 export const authOptions: NextAuthOptions = {
   providers: [

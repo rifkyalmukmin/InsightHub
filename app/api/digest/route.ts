@@ -5,8 +5,8 @@ import { validateBody, digestSchema } from '@/lib/validations';
 import { generateDigest } from '@/services/openai/digest';
 import { getUserPreferences } from '@/lib/preferences';
 import { sendDigestEmail } from '@/lib/email/client';
-import { logError } from '@/lib/logger';
 import prisma from '@/lib/db/prisma';
+import { internalServerError } from '@/lib/utils/api-error';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
@@ -62,14 +62,7 @@ export const POST = withRateLimit(async (request: Request) => {
       message: `${type} digest generated successfully`,
     });
   } catch (error) {
-    logError('Digest POST', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Digest generation failed',
-      },
-      { status: 500 }
-    );
+    return internalServerError('Digest POST', error);
   }
 });
 

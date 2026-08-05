@@ -182,14 +182,7 @@ export async function processCrawledPage(page: CrawledPage): Promise<void> {
   });
 
   if (existing) {
-    // Mark as duplicate
-    await prisma.article.update({
-      where: { id: existing.id },
-      data: {
-        isDuplicate: true,
-        duplicateOf: sourceId,
-      },
-    });
+    // URL already indexed — skip without hiding the existing article
     return;
   }
 

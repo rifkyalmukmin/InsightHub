@@ -5,6 +5,7 @@ import prisma from '@/lib/db/prisma';
 import { validateBody, crawlSchema } from '@/lib/validations';
 import { getCrawlUrlError } from '@/lib/utils/url';
 import { startCrawlJob } from '@/services/crawl/crawler';
+import { internalServerError } from '@/lib/utils/api-error';
 
 export const POST = withRateLimit(async (request: Request) => {
   try {
@@ -87,14 +88,7 @@ export const POST = withRateLimit(async (request: Request) => {
       message: `Crawling started for ${domain}`,
     });
   } catch (error) {
-    console.error('Crawl error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Crawl failed',
-      },
-      { status: 500 }
-    );
+    return internalServerError('Crawl POST', error);
   }
 });
 
