@@ -154,30 +154,3 @@ export async function summarizeArticle(
   return result;
 }
 
-export async function summarizeBatch(
-  articleIds: string[],
-  model: OpenAIModel = OPENAI_MODELS.GPT_4O_MINI,
-  concurrency: number = 3
-): Promise<{ success: string[]; failed: string[] }> {
-  const success: string[] = [];
-  const failed: string[] = [];
-
-  // Process in batches
-  for (let i = 0; i < articleIds.length; i += concurrency) {
-    const batch = articleIds.slice(i, i + concurrency);
-    const results = await Promise.allSettled(
-      batch.map((id) => summarizeArticle(id, model))
-    );
-
-    results.forEach((result, idx) => {
-      if (result.status === 'fulfilled') {
-        success.push(batch[idx]);
-      } else {
-        failed.push(batch[idx]);
-        console.error(`Failed to summarize article ${batch[idx]}:`, result.reason);
-      }
-    });
-  }
-
-  return { success, failed };
-}

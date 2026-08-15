@@ -1,15 +1,8 @@
-import { getFirecrawlClient, CrawlOptions, CrawlResult } from '../firecrawl/client';
+import { CrawlOptions } from '../firecrawl/client';
 import prisma from '@/lib/db/prisma';
 import { getDomain } from '@/lib/utils/format';
 import { slugify } from '@/lib/utils/slugify';
-import { enqueueCrawlJob, completeCrawlJob, failCrawlJob } from '@/lib/utils/jobQueue';
-
-export interface CrawlJob {
-  sourceId: string;
-  url: string;
-  maxPages: number;
-  depth: number;
-}
+import { enqueueCrawlJob } from '@/lib/utils/jobQueue';
 
 export async function startCrawlJob(options: CrawlOptions & { sourceId: string; userId?: string }): Promise<{
   jobId: string;
@@ -58,117 +51,6 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
       },
     });
     throw error;
-  }
-}
-
-async function processCrawlResults(
-  jobId: string,
-  logId: string,
-  sourceId: string,
-  userId: string | undefined,
-  startedAt: number,
-): Promise<void> {
-  const client = getFirecrawlClient();
-
-  try {
-    // Poll until complete
-    let status: any;
-    const maxAttempts = 60; // ~5 minutes with 5s interval
-    let attempts = 0;
-
-    while (attempts < maxAttempts) {
-      status = await client.checkCrawlStatus(jobId);
-      if (status.status === 'completed') break;
-      if (status.status === 'failed' || status.status === 'cancelled') {
-        throw new Error(status.error || 'Crawl failed');
-      }
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      attempts++;
-    }
-
-    if (!status || status.status !== 'completed' || !status.data) {
-      throw new Error('Crawl timed out');
-    }
-
-    // Process results
-    let processed = 0;
-    const errors: string[] = [];
-
-    for (const item of status.data) {
-      try {
-        await processCrawledPage({
-          data: item,
-          sourceId,
-          userId,
-        });
-        processed++;
-      } catch (err) {
-        const pageUrl = item.metadata?.sourceURL || item.metadata?.pageURL || 'unknown';
-        errors.push(`${pageUrl}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
-    }
-
-    // Update crawl log
-    await prisma.crawlLog.update({
-      where: { id: logId },
-      data: {
-        status: 'success',
-        pagesCrawled: processed,
-        pagesTotal: status.data.length,
-        error: errors.length > 0 ? errors.join('; ') : null,
-        duration: (Date.now() - startedAt) / 1000,
-      },
-    });
-
-    // Update source last crawl
-    await prisma.newsSource.update({
-      where: { id: sourceId },
-      data: { lastCrawlAt: new Date() },
-    });
-
-    // Mark job as completed
-    await completeCrawlJob(jobId, {
-      pagesCrawled: processed,
-      pagesTotal: status.data.length,
-    });
-  } catch (error) {
-    await prisma.crawlLog.update({
-      where: { id: logId },
-      data: {
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Crawl failed',
-      },
-    });
-
-    // Mark job as failed (with retry logic)
-    await failCrawlJob(jobId, error instanceof Error ? error.message : 'Crawl failed');
-
-    throw error;
-  }
-}
-
-export async function scrapeUrl(options: CrawlOptions): Promise<CrawlResult> {
-  const client = getFirecrawlClient();
-
-  try {
-    const result = await client.scrapeUrl(options.url, {
-      formats: ['markdown'],
-    }) as any;
-
-    return {
-      success: true,
-      data: [
-        {
-          markdown: result.markdown,
-          metadata: result.metadata,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
   }
 }
 

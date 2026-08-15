@@ -63,9 +63,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   }
 }
 
-export function isEmailConfigured(): boolean {
-  return !!process.env.SMTP_HOST;
-}
 
 export async function sendDigestEmail(
   to: string,
