@@ -1,6 +1,21 @@
 import nodemailer from 'nodemailer';
 import { logger } from '@/lib/logger';
 
+/**
+ * Escape HTML metacharacters so untrusted text cannot inject markup.
+ * Digest titles/contents are AI-generated from crawled articles (untrusted
+ * input) — a malicious site can prompt-inject raw HTML, so every value that
+ * is interpolated into an email body must be escaped first.
+ */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function createTransport() {
   const host = process.env.SMTP_HOST;
   if (!host) return null;
@@ -57,12 +72,15 @@ export async function sendDigestEmail(
   title: string,
   content: string
 ): Promise<boolean> {
+  // title/content are AI-generated from crawled articles (untrusted input) —
+  // escape before interpolating into the HTML body to prevent HTML injection
+  // (e.g. prompt-injected <img onerror> tracking pixels or phishing markup).
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #3B82F6;">InsightHub Digest</h1>
-      <h2>${title}</h2>
+      <h2>${escapeHtml(title)}</h2>
       <div style="line-height: 1.6; color: #333;">
-        ${content.replace(/\n/g, '<br>')}
+        ${escapeHtml(content).replace(/\n/g, '<br>')}
       </div>
       <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;" />
       <p style="font-size: 12px; color: #6b7280;">
