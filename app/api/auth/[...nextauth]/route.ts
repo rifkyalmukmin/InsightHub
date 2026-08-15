@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import NextAuth from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { rateLimit } from '@/lib/utils/rateLimit';
+import { getClientIp } from '@/lib/utils/ip';
 
 const handler = NextAuth(authOptions);
 
@@ -19,14 +20,6 @@ interface NextAuthCtx {
 }
 
 type NextAuthHandlerContext = Parameters<typeof handler>[1];
-
-function getClientIp(request: Request): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
-}
 
 function rateLimitedResponse(
   message: string,

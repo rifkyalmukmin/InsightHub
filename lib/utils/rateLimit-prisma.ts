@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { redisRateLimit } from './rateLimit-redis';
+import { getClientIp } from './ip';
 
 const DEFAULT_MAX = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
 const DEFAULT_WINDOW = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10);
@@ -71,10 +72,8 @@ export function withRateLimit(
   windowMs: number = DEFAULT_WINDOW
 ) {
   return async (request: Request) => {
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    // Only trust x-forwarded-for when behind a trusted proxy (see TRUST_PROXY)
+    const ip = getClientIp(request);
 
     const limit = await rateLimit(ip, maxRequests, windowMs);
 

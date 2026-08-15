@@ -73,6 +73,7 @@ npm run build     # Production build
 |---------|-------------|---------|
 | Redis | `REDIS_URL` | Faster rate limiting (falls back to PostgreSQL) |
 | SMTP | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Email digest delivery |
+| Trusted proxy | `TRUST_PROXY` | Trust `X-Forwarded-For` for rate limiting — set to `true` on Vercel/Cloudflare/nginx; leave empty on a bare server (client-supplied XFF is spoofable) |
 
 ### Background Crawl Worker
 
