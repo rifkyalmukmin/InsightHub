@@ -75,6 +75,18 @@ npm run build     # Production build
 | SMTP | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Email digest delivery |
 | Trusted proxy | `TRUST_PROXY` | Trust `X-Forwarded-For` for rate limiting — set to `true` on Vercel/Cloudflare/nginx; leave empty on a bare server (client-supplied XFF is spoofable) |
 
+### Rate limiting
+
+Authenticated requests are limited **per account** (not per IP), so users behind a shared NAT or proxy never exhaust each other's bucket and rotating IPs cannot dodge a per-account budget. Anonymous requests are limited per IP; when the client IP cannot be determined (`unknown`, e.g. a bare server without proxy headers) a tighter cap applies so one client cannot exhaust the shared bucket for everyone.
+
+| Env Variable | Default | Meaning |
+|--------------|---------|---------|
+| `RATE_LIMIT_MAX_REQUESTS` | `100` | Anonymous requests per IP per window |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window for anonymous requests |
+| `RATE_LIMIT_USER_MAX_REQUESTS` | `300` | Authenticated requests per user per window |
+| `RATE_LIMIT_USER_WINDOW_MS` | `60000` | Rate-limit window for authenticated requests |
+| `RATE_LIMIT_UNKNOWN_IP_MAX_REQUESTS` | `30` | Cap for anonymous requests when the IP is `unknown` |
+
 ### Background Crawl Worker
 
 Crawling is processed by the worker (`npm run worker`) — the API only enqueues a job and returns immediately, so the worker must be running for crawls to complete. If a worker/serverless process dies mid-crawl, the job is automatically recovered: after `JOB_STALE_TIMEOUT_MS` (default `900000`, 15 min) a stuck `running` job is reclaimed as a retry, and once `maxAttempts` (default 3) are exhausted it is marked failed.
