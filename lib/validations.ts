@@ -1,9 +1,18 @@
 import { z } from 'zod';
+import { getCrawlUrlError } from '@/lib/utils/url';
 
 /**
  * Shared Zod validation schemas for all API routes.
  * Centralizing schemas here keeps validation consistent and DRY.
  */
+
+/**
+ * Rejects feed URLs the server would fetch from internal destinations
+ * (localhost, private IPs, ...) — the RSS importer runs on this server, so a
+ * user-supplied feed URL is a server-side fetch (SSRF) surface. Static check
+ * only; the importer additionally verifies DNS before fetching.
+ */
+const publicFeedUrl = (value: string) => getCrawlUrlError(value) === null;
 
 // ─── Articles ────────────────────────────────────────────────────────────────
 
@@ -31,7 +40,12 @@ export const createSourceSchema = z.object({
   name: z.string().trim().min(1).max(200),
   domain: z.string().trim().min(1).max(253),
   url: z.string().url().max(2048),
-  feedUrl: z.string().url().max(2048).optional(),
+  feedUrl: z
+    .string()
+    .url()
+    .max(2048)
+    .refine(publicFeedUrl, 'Feed URLs must point to a public HTTP(S) address')
+    .optional(),
   description: z.string().trim().max(1000).optional(),
   category: z.string().trim().max(100).optional(),
   autoRefresh: autoRefreshSchema.default('none'),
@@ -41,7 +55,13 @@ export const updateSourceSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   domain: z.string().trim().min(1).max(253).optional(),
   url: z.string().url().max(2048).optional(),
-  feedUrl: z.string().url().max(2048).nullable().optional(),
+  feedUrl: z
+    .string()
+    .url()
+    .max(2048)
+    .refine(publicFeedUrl, 'Feed URLs must point to a public HTTP(S) address')
+    .nullable()
+    .optional(),
   description: z.string().trim().max(1000).optional(),
   category: z.string().trim().max(100).optional(),
   status: z.enum(['active', 'paused', 'error']).optional(),

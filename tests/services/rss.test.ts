@@ -3,6 +3,7 @@ import {
   normalizeArticleUrl,
   extractTitleFromHtml,
   isBetterTitle,
+  parseFeedUrl,
 } from '@/services/rss/parser';
 import { importRssFeed } from '@/services/rss/importer';
 import {
@@ -10,6 +11,7 @@ import {
   isAutoRefreshDue,
 } from '@/lib/utils/schedule';
 import prisma from '@/lib/db/prisma';
+import { getCrawlUrlErrorAsync } from '@/lib/utils/url';
 
 jest.mock('@/lib/db/prisma', () => ({
   __esModule: true,
@@ -17,6 +19,20 @@ jest.mock('@/lib/db/prisma', () => ({
     newsSource: { findUnique: jest.fn() },
   },
 }));
+
+jest.mock('@/lib/utils/url', () => ({
+  getCrawlUrlErrorAsync: jest.fn(),
+}));
+
+// Keep the real parser helpers for the existing tests, but stub out
+// parseFeedUrl so the importer tests never hit the network.
+jest.mock('@/services/rss/parser', () => {
+  const actual = jest.requireActual('@/services/rss/parser');
+  return { ...actual, parseFeedUrl: jest.fn() };
+});
+
+const mockGetCrawlUrlErrorAsync = getCrawlUrlErrorAsync as jest.Mock;
+const mockParseFeedUrl = parseFeedUrl as jest.Mock;
 
 describe('RSS parser helpers', () => {
   it('strips HTML tags and decodes entities', () => {
@@ -104,6 +120,11 @@ describe('RSS title extraction', () => {
 });
 
 describe('RSS importer', () => {
+  beforeEach(() => {
+    mockGetCrawlUrlErrorAsync.mockResolvedValue(null);
+    mockParseFeedUrl.mockReset();
+  });
+
   it('rejects sources without a feed URL', async () => {
     (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue({
       id: 'src-1',
@@ -117,6 +138,44 @@ describe('RSS importer', () => {
   it('rejects unknown sources', async () => {
     (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue(null);
     await expect(importRssFeed('missing')).rejects.toThrow('Source not found');
+  });
+
+  it('blocks feed URLs that fail the SSRF guard', async () => {
+    (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue({
+      id: 'src-1',
+      feedUrl: 'http://169.254.169.254/latest/meta-data/',
+    });
+    mockGetCrawlUrlErrorAsync.mockResolvedValue('Private IP addresses are not allowed');
+
+    await expect(importRssFeed('src-1')).rejects.toThrow(
+      /Feed URL blocked \(Private IP addresses are not allowed\)/
+    );
+  });
+
+  it('proceeds to parse when the feed URL passes the SSRF guard', async () => {
+    (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue({
+      id: 'src-1',
+      feedUrl: 'https://example.com/feed',
+    });
+    mockGetCrawlUrlErrorAsync.mockResolvedValue(null);
+    mockParseFeedUrl.mockRejectedValue(new Error('network error'));
+
+    // Guard passes → parseFeedUrl runs (and fails for a non-network reason),
+    // proving the guard was not the blocker.
+    await expect(importRssFeed('src-1')).rejects.toThrow('network error');
+    expect(mockGetCrawlUrlErrorAsync).toHaveBeenCalledWith('https://example.com/feed');
+    expect(mockParseFeedUrl).toHaveBeenCalledWith('https://example.com/feed');
+  });
+
+  it('does not call the feed parser when the SSRF guard blocks the URL', async () => {
+    (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue({
+      id: 'src-1',
+      feedUrl: 'http://169.254.169.254/latest/meta-data/',
+    });
+    mockGetCrawlUrlErrorAsync.mockResolvedValue('Private IP addresses are not allowed');
+
+    await expect(importRssFeed('src-1')).rejects.toThrow();
+    expect(mockParseFeedUrl).not.toHaveBeenCalled();
   });
 });
 

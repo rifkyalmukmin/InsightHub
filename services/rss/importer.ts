@@ -4,6 +4,7 @@ import { readingTime } from '@/lib/utils/format';
 import { slugify } from '@/lib/utils/slugify';
 import { guessCategory } from '@/services/crawl/crawler';
 import { parseFeedUrl, normalizeArticleUrl, type FeedItem } from './parser';
+import { getCrawlUrlErrorAsync } from '@/lib/utils/url';
 
 export interface RssImportResult {
   feedTitle: string;
@@ -29,6 +30,16 @@ export async function importRssFeed(sourceId: string): Promise<RssImportResult> 
   const source = await prisma.newsSource.findUnique({ where: { id: sourceId } });
   if (!source) throw new Error('Source not found');
   if (!source.feedUrl) throw new Error('Source has no RSS feed URL configured');
+
+  // SSRF guard — the feed URL is fetched from THIS server, so block internal
+  // destinations (localhost, private IPs, domains resolving to them) before
+  // making the request. Static checks also run at schema level; this async
+  // check additionally resolves DNS, covering DNS-based bypasses and any URL
+  // stored before the schema guard existed.
+  const urlError = await getCrawlUrlErrorAsync(source.feedUrl);
+  if (urlError) {
+    throw new Error(`Feed URL blocked (${urlError})`);
+  }
 
   const startedAt = Date.now();
   const feed = await parseFeedUrl(source.feedUrl);
