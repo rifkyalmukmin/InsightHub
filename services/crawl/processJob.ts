@@ -1,6 +1,6 @@
 import { getFirecrawlClient } from '@/services/firecrawl/client';
 import prisma from '@/lib/db/prisma';
-import { processCrawledPage } from '@/services/crawl/crawler';
+import { processCrawledPages, type CrawledPage } from '@/services/crawl/crawler';
 import { completeCrawlJob, failCrawlJob } from '@/lib/utils/jobQueue';
 import { logError, logger } from '@/lib/logger';
 import type { CrawlJob, NewsSource } from '@prisma/client';
@@ -56,23 +56,11 @@ export async function executeCrawlJob(
     );
   }
 
-  let processed = 0;
-  const errors: string[] = [];
-
-  for (const item of pages) {
-    try {
-      await processCrawledPage({
-        data: item as { markdown?: string; metadata?: Record<string, string | undefined> },
-        sourceId: job.sourceId,
-        userId,
-      });
-      processed++;
-    } catch (err) {
-      const page = item as { metadata?: { sourceURL?: string; pageURL?: string } };
-      const pageUrl = page.metadata?.sourceURL || page.metadata?.pageURL || 'unknown';
-      errors.push(`${pageUrl}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-  }
+  // Index all crawled pages in one batched pass (bulk insert + topic linking).
+  const { processed, errors } = await processCrawledPages(pages as CrawledPage[], {
+    sourceId: job.sourceId,
+    userId,
+  });
 
   const duration = (Date.now() - startedAt) / 1000;
 

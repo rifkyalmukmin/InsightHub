@@ -1,8 +1,11 @@
 import { CrawlOptions } from '../firecrawl/client';
 import prisma from '@/lib/db/prisma';
-import { getDomain } from '@/lib/utils/format';
-import { slugify } from '@/lib/utils/slugify';
 import { enqueueCrawlJob } from '@/lib/utils/jobQueue';
+import {
+  batchCreateArticles,
+  linkCategoryTopics,
+  type ArticleBatchInput,
+} from '@/services/articles/batchArticles';
 
 export async function startCrawlJob(options: CrawlOptions & { sourceId: string; userId?: string }): Promise<{
   jobId: string;
@@ -54,70 +57,65 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
   }
 }
 
-interface CrawledPage {
+export interface CrawledPage {
   data: {
     markdown?: string;
     metadata?: Record<string, string | undefined>;
   };
-  sourceId: string;
-  userId?: string;
 }
 
-export async function processCrawledPage(page: CrawledPage): Promise<void> {
-  const { data, sourceId, userId } = page;
-  const metadata = data.metadata || {};
+export interface ProcessedPagesResult {
+  /** Pages handled without error, including skipped/no-URL pages. */
+  processed: number;
+  /** Per-page failure messages for the crawl log. */
+  errors: string[];
+}
 
-  const url = metadata.sourceURL || metadata.pageURL;
-  if (!url) return;
+/**
+ * Index crawled pages as Article rows in one batched pass (dedup against
+ * already-indexed URLs, bulk insert, bulk topic linking) instead of one
+ * query per page. Pages without a resolvable URL are skipped, not errors.
+ */
+export async function processCrawledPages(
+  pages: CrawledPage[],
+  ctx: { sourceId: string; userId?: string | null }
+): Promise<ProcessedPagesResult> {
+  const inputs: ArticleBatchInput[] = [];
+  for (const { data } of pages) {
+    const metadata = data.metadata || {};
+    const url = metadata.sourceURL || metadata.pageURL;
+    if (!url) continue;
 
-  // Check for duplicates
-  const existing = await prisma.article.findUnique({
-    where: { url },
-  });
-
-  if (existing) {
-    // URL already indexed — skip without hiding the existing article
-    return;
-  }
-
-  const title = metadata.title || 'Untitled Article';
-  const content = data.markdown || '';
-  const domain = getDomain(url);
-
-  // Create article
-  const article = await prisma.article.create({
-    data: {
-      sourceId,
-      userId: userId || null,
+    const content = data.markdown || '';
+    inputs.push({
       url,
-      title,
+      title: metadata.title || 'Untitled Article',
       content,
       markdown: content,
       author: metadata.author || null,
-      publishDate: metadata.publishedTime ? new Date(metadata.publishedTime) : null,
+      publishDate: metadata.publishedTime ? safeDate(metadata.publishedTime) : null,
       category: metadata.description ? guessCategory(metadata.description) : null,
       imageUrl: metadata.image || null,
       language: metadata.language || 'en',
-      status: 'crawled',
-    },
-  });
-
-  // Auto-create topic tags from source category
-  if (metadata.description) {
-    const topicSlug = slugify(guessCategory(metadata.description));
-    const topic = await prisma.topic.upsert({
-      where: { slug: topicSlug },
-      create: { name: guessCategory(metadata.description), slug: topicSlug },
-      update: {},
-    });
-
-    await prisma.articleTag.create({
-      data: {
-        articleId: article.id,
-        topicId: topic.id,
-      },
     });
   }
+
+  const { createdByUrl, failures } = await batchCreateArticles(inputs, {
+    sourceId: ctx.sourceId,
+    userId: ctx.userId ?? null,
+  });
+  await linkCategoryTopics(createdByUrl);
+
+  return {
+    processed: pages.length - failures.length,
+    errors: failures.map((failure) => `${failure.url}: ${failure.message}`),
+  };
+}
+
+/** Parse a date defensively — crawled metadata sometimes ships invalid values. */
+function safeDate(value: string): Date | null {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export function guessCategory(description: string): string {

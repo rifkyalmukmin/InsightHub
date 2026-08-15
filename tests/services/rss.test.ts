@@ -17,7 +17,7 @@ jest.mock('@/lib/db/prisma', () => ({
   __esModule: true,
   default: {
     newsSource: { findUnique: jest.fn(), update: jest.fn() },
-    article: { findMany: jest.fn(), createMany: jest.fn() },
+    article: { findMany: jest.fn(), createMany: jest.fn(), create: jest.fn() },
     topic: { findMany: jest.fn(), createMany: jest.fn() },
     articleTag: { createMany: jest.fn() },
     crawlLog: { create: jest.fn() },
@@ -250,12 +250,15 @@ describe('RSS importer', () => {
       .mockResolvedValueOnce([]) // dedup: nothing indexed yet
       .mockResolvedValue([]);
     (prisma.article.createMany as jest.Mock).mockRejectedValue(new Error('constraint violation'));
+    (prisma.article.create as jest.Mock).mockRejectedValue(new Error('insert failed'));
 
     const result = await importRssFeed('src-1');
 
     expect(result.added).toBe(0);
     expect(result.errors).toBe(1);
-    // The crawl log is still written so the source is not stuck mid-import
+    // Bulk insert failed → falls back to per-item insert, which also fails;
+    // the crawl log is still written so the source is not stuck mid-import.
+    expect(prisma.article.create).toHaveBeenCalled();
     expect(prisma.crawlLog.create).toHaveBeenCalled();
   });
 });
