@@ -16,7 +16,11 @@ import { getCrawlUrlErrorAsync } from '@/lib/utils/url';
 jest.mock('@/lib/db/prisma', () => ({
   __esModule: true,
   default: {
-    newsSource: { findUnique: jest.fn() },
+    newsSource: { findUnique: jest.fn(), update: jest.fn() },
+    article: { findMany: jest.fn(), createMany: jest.fn() },
+    topic: { findMany: jest.fn(), createMany: jest.fn() },
+    articleTag: { createMany: jest.fn() },
+    crawlLog: { create: jest.fn() },
   },
 }));
 
@@ -176,6 +180,83 @@ describe('RSS importer', () => {
 
     await expect(importRssFeed('src-1')).rejects.toThrow();
     expect(mockParseFeedUrl).not.toHaveBeenCalled();
+  });
+
+  it('batch-imports feed items, skipping already-indexed and duplicate URLs', async () => {
+    (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue({
+      id: 'src-1',
+      feedUrl: 'https://example.com/feed',
+      userId: null,
+      domain: 'example.com',
+      category: null,
+    });
+    mockParseFeedUrl.mockResolvedValue({
+      title: 'Test Feed',
+      items: [
+        { title: 'Story A', link: 'https://example.com/a?utm_source=x', content: '<p>a</p>' },
+        { title: 'AI breakthrough', link: 'https://example.com/b', content: '<p>b</p>' },
+      ],
+    });
+    // First article.findMany (dedup) → A already indexed; second (created rows) → B
+    (prisma.article.findMany as jest.Mock)
+      .mockResolvedValueOnce([{ url: 'https://example.com/a' }])
+      .mockResolvedValue([{ id: 'art-b', url: 'https://example.com/b', category: 'AI' }]);
+    (prisma.article.createMany as jest.Mock).mockResolvedValue({ count: 1 });
+    (prisma.topic.findMany as jest.Mock).mockResolvedValue([
+      { id: 't1', slug: 'tech' },
+      { id: 't2', slug: 'ai' },
+    ]);
+
+    const result = await importRssFeed('src-1');
+
+    expect(result.total).toBe(2);
+    expect(result.added).toBe(1);
+    expect(result.skipped).toBe(1);
+    expect(result.errors).toBe(0);
+
+    // One batched dedup query against the normalized URLs
+    expect(prisma.article.findMany).toHaveBeenNthCalledWith(1, {
+      where: { url: { in: ['https://example.com/a', 'https://example.com/b'] } },
+      select: { url: true },
+    });
+    // Only the new story is bulk-created
+    expect(prisma.article.createMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({ url: 'https://example.com/b', title: 'AI breakthrough' })],
+      skipDuplicates: true,
+    });
+    // Topic already exists → no topic insert; tag row is bulk-created
+    expect(prisma.topic.createMany).not.toHaveBeenCalled();
+    expect(prisma.articleTag.createMany).toHaveBeenCalledWith({
+      data: [{ articleId: 'art-b', topicId: 't2' }],
+      skipDuplicates: true,
+    });
+    expect(prisma.crawlLog.create).toHaveBeenCalled();
+    expect(prisma.newsSource.update).toHaveBeenCalled();
+  });
+
+  it('counts a failed create batch as errors without losing the feed', async () => {
+    (prisma.newsSource.findUnique as jest.Mock).mockResolvedValue({
+      id: 'src-1',
+      feedUrl: 'https://example.com/feed',
+      userId: null,
+      domain: 'example.com',
+      category: null,
+    });
+    mockParseFeedUrl.mockResolvedValue({
+      title: 'Test Feed',
+      items: [{ title: 'New story', link: 'https://example.com/c', content: '<p>c</p>' }],
+    });
+    (prisma.article.findMany as jest.Mock)
+      .mockResolvedValueOnce([]) // dedup: nothing indexed yet
+      .mockResolvedValue([]);
+    (prisma.article.createMany as jest.Mock).mockRejectedValue(new Error('constraint violation'));
+
+    const result = await importRssFeed('src-1');
+
+    expect(result.added).toBe(0);
+    expect(result.errors).toBe(1);
+    // The crawl log is still written so the source is not stuck mid-import
+    expect(prisma.crawlLog.create).toHaveBeenCalled();
   });
 });
 
