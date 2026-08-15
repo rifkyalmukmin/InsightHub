@@ -30,6 +30,7 @@ model User {
   conversations Conversation[]
   sources       NewsSource[]
   notifications Notification[]
+  usage         Usage[]
 
   @@index([email])
 }
@@ -327,6 +328,21 @@ model RateLimit {
   @@unique([identifier])
   @@index([identifier])
   @@index([resetAt])
+}
+
+model Usage {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // summarize, crawl, chat, digest
+  date      String   // YYYY-MM-DD (UTC) — daily bucket per user + type
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, date])
+  @@index([userId, date])
+  @@index([type, date])
 }
 
 model CrawlJob {

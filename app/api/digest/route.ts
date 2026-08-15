@@ -3,6 +3,7 @@ import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
 import { validateBody, digestSchema } from '@/lib/validations';
 import { generateDigest } from '@/services/openai/digest';
+import { consumeUsage } from '@/lib/utils/usage';
 import { getUserPreferences } from '@/lib/preferences';
 import { sendDigestEmail } from '@/lib/email/client';
 import prisma from '@/lib/db/prisma';
@@ -24,6 +25,18 @@ export const POST = withRateLimit(async (request: Request) => {
     }
 
     const { type } = validation.data;
+
+    // Daily per-user quota for paid OpenAI calls (checked before invoking).
+    const usage = await consumeUsage(userId, 'digest');
+    if (!usage.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Daily digest limit reached. Try again after ${usage.resetAt}.`,
+        },
+        { status: 429 }
+      );
+    }
 
     const digest = await generateDigest(type, userId);
 

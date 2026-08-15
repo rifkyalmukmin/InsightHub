@@ -5,6 +5,7 @@ import prisma from '@/lib/db/prisma';
 import { searchArticles } from '@/services/analytics/search';
 import { validateBody, chatSchema } from '@/lib/validations';
 import { getSessionUser } from '@/lib/auth/session';
+import { consumeUsage } from '@/lib/utils/usage';
 import { internalServerError } from '@/lib/utils/api-error';
 
 export const POST = withRateLimit(async (request: Request): Promise<NextResponse> => {
@@ -40,6 +41,18 @@ export const POST = withRateLimit(async (request: Request): Promise<NextResponse
         },
         message: 'No relevant articles found',
       });
+    }
+
+    // Daily per-user quota for paid OpenAI calls (checked before invoking).
+    const usage = await consumeUsage(userId, 'chat');
+    if (!usage.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Daily chat limit reached. Try again after ${usage.resetAt}.`,
+        },
+        { status: 429 }
+      );
     }
 
     // Build context from search results

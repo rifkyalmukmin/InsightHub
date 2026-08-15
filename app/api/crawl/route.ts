@@ -4,6 +4,7 @@ import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 import { validateBody, crawlSchema } from '@/lib/validations';
 import { getCrawlUrlError } from '@/lib/utils/url';
+import { consumeUsage } from '@/lib/utils/usage';
 import { startCrawlJob } from '@/services/crawl/crawler';
 import { internalServerError } from '@/lib/utils/api-error';
 
@@ -51,6 +52,18 @@ export const POST = withRateLimit(async (request: Request) => {
           { status: 403 }
         );
       }
+    }
+
+    // Daily per-user quota for paid Firecrawl calls (checked after authz, before enqueueing).
+    const usage = await consumeUsage(userId, 'crawl');
+    if (!usage.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Daily crawl limit reached. Try again after ${usage.resetAt}.`,
+        },
+        { status: 429 }
+      );
     }
 
     if (!source) {

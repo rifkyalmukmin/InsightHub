@@ -74,6 +74,22 @@ npm run build     # Production build
 | Redis | `REDIS_URL` | Faster rate limiting (falls back to PostgreSQL) |
 | SMTP | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Email digest delivery |
 
+### Daily Usage Quotas
+
+Summarize, crawl, chat, and digest calls hit paid APIs (OpenAI / Firecrawl), so each user gets a **daily per-user quota** enforced before the API is called (HTTP 429 when exceeded):
+
+| Env Variable | Default | Meaning |
+|--------------|---------|---------|
+| `USAGE_DAILY_LIMIT_SUMMARIZE` | `20` | AI summaries per user per day |
+| `USAGE_DAILY_LIMIT_CRAWL` | `5` | Crawls per user per day |
+| `USAGE_DAILY_LIMIT_CHAT` | `100` | Chat messages per user per day |
+| `USAGE_DAILY_LIMIT_DIGEST` | `10` | Digest generations per user per day |
+| `USAGE_GLOBAL_DAILY_BUDGET` | `0` | Hard cap on total paid calls/day across all users (`0` = disabled) |
+| `USAGE_ALERT_THRESHOLD` | `0.8` | Log a warning at this fraction of the limit |
+| `USAGE_RETENTION_DAYS` | `7` | Usage history kept (pruned lazily) |
+
+Set a limit to `0` to make that type unlimited. The `Usage` table is created by running `npx prisma migrate deploy`.
+
 ## Docker (Full Stack)
 
 ```bash

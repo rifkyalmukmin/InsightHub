@@ -3,6 +3,7 @@ import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
 import { validateBody, summarizeSchema } from '@/lib/validations';
 import { summarizeArticle } from '@/services/openai/summarize';
+import { consumeUsage } from '@/lib/utils/usage';
 import prisma from '@/lib/db/prisma';
 import { internalServerError } from '@/lib/utils/api-error';
 
@@ -52,6 +53,18 @@ export const POST = withRateLimit(async (request: Request) => {
         },
         message: 'Article already summarized',
       });
+    }
+
+    // Daily per-user quota for paid OpenAI calls (checked before invoking).
+    const usage = await consumeUsage(userId, 'summarize');
+    if (!usage.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Daily summarize limit reached. Try again after ${usage.resetAt}.`,
+        },
+        { status: 429 }
+      );
     }
 
     const result = await summarizeArticle(articleId, model);
