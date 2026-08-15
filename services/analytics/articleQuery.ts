@@ -90,6 +90,11 @@ export async function buildArticleWhere(
  * Full-text search using the indexed `searchVector` tsvector column
  * (Indonesian config, kept in sync by a DB trigger). The GIN index on
  * `searchVector` turns the lookup into an index scan instead of a seq scan.
+ *
+ * User scoping uses UNION ALL (own articles + global articles) instead of
+ * `userId = X OR userId IS NULL` — the OR shape makes the planner pull the
+ * whole table through the btree index and filter the vector at the heap,
+ * bypassing the GIN index entirely (verified via EXPLAIN).
  * Falls back to Prisma contains search on failure.
  */
 async function searchWithFullText(
@@ -102,27 +107,33 @@ async function searchWithFullText(
   const orderDir = sort === 'oldest' ? Prisma.sql`ASC` : Prisma.sql`DESC`;
 
   try {
-    const userFilter = userId
-      ? Prisma.sql`AND ("userId" = ${userId} OR "userId" IS NULL)`
-      : Prisma.sql`AND "userId" IS NULL`;
     // websearch_to_tsquery supports quotes and OR/AND — safer than plainto.
     // Config must match the one used to build "searchVector" ('indonesian').
     const tsQuery = Prisma.sql`websearch_to_tsquery('indonesian', ${query})`;
+    const searchCond = Prisma.sql`"isDuplicate" = false AND "searchVector" @@ ${tsQuery}`;
+
+    // Own articles branch (only when a user is scoped) + global articles branch.
+    // Count branches select a constant; id branches select the sort columns.
+    const ownCountBranch = userId
+      ? Prisma.sql`SELECT 1 FROM "Article" WHERE ${searchCond} AND "userId" = ${userId} UNION ALL `
+      : Prisma.empty;
+    const ownIdBranch = userId
+      ? Prisma.sql`SELECT "id", "createdAt" FROM "Article" WHERE ${searchCond} AND "userId" = ${userId} UNION ALL `
+      : Prisma.empty;
 
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count
-      FROM "Article"
-      WHERE "isDuplicate" = false
-      ${userFilter}
-      AND "searchVector" @@ ${tsQuery}
+      FROM (
+        ${ownCountBranch}
+        SELECT 1 FROM "Article" WHERE ${searchCond} AND "userId" IS NULL
+      ) t
     `;
 
     const rows = await prisma.$queryRaw<{ id: string }[]>`
-      SELECT "id"
-      FROM "Article"
-      WHERE "isDuplicate" = false
-      ${userFilter}
-      AND "searchVector" @@ ${tsQuery}
+      SELECT "id" FROM (
+        ${ownIdBranch}
+        SELECT "id", "createdAt" FROM "Article" WHERE ${searchCond} AND "userId" IS NULL
+      ) t
       ORDER BY "createdAt" ${orderDir}
       LIMIT ${limit} OFFSET ${offset}
     `;

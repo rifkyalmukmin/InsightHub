@@ -96,13 +96,14 @@ describe('Full-text search (indexed tsvector)', () => {
     expect(result.articles).toHaveLength(2);
 
     // Both SQL statements target the indexed column
-    expect(sqlText(0)).toContain('searchVector');
-    expect(sqlText(1)).toContain('searchVector');
+    expect(hasText(0, 'searchVector')).toBe(true);
+    expect(hasText(1, 'searchVector')).toBe(true);
     // The tsquery is built with the Indonesian config
-    expect(hasSqlObject(0, 'indonesian')).toBe(true);
-    expect(hasSqlObject(1, 'indonesian')).toBe(true);
-    // User scoping is preserved inside the raw SQL
+    expect(hasText(0, 'indonesian')).toBe(true);
+    expect(hasText(1, 'indonesian')).toBe(true);
+    // User scoping is preserved inside the raw SQL (own + global branches)
     expect(hasText(0, 'userId')).toBe(true);
+    expect(hasText(0, 'UNION ALL')).toBe(true);
   });
 
   it('does not use full-text search when other filters are combined', async () => {
