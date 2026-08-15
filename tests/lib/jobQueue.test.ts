@@ -4,6 +4,17 @@ import prisma from '@/lib/db/prisma';
 describe('Job Queue', () => {
   beforeEach(async () => {
     await prisma.crawlJob.deleteMany({});
+    // CrawlJob.sourceId has an FK to NewsSource — ensure the fixture source exists
+    await prisma.newsSource.upsert({
+      where: { id: 'test-source' },
+      create: {
+        id: 'test-source',
+        name: 'Test Source',
+        domain: 'example.com',
+        url: 'https://example.com',
+      },
+      update: {},
+    });
   });
 
   it('should enqueue a crawl job', async () => {
@@ -46,9 +57,11 @@ describe('Job Queue', () => {
   });
 
   it('should get failed jobs', async () => {
-    const { jobId } = await enqueueCrawlJob({ sourceId: 'test-source', url: 'https://example.com', maxAttempts: 1 });
-    await failCrawlJob(jobId, 'Test error');
-    await failCrawlJob(jobId, 'Test error');
+    await enqueueCrawlJob({ sourceId: 'test-source', url: 'https://example.com', maxAttempts: 1 });
+    // Attempts increment when the job is claimed — mirror the real worker flow
+    const job = await dequeueCrawlJob();
+    expect(job).not.toBeNull();
+    await failCrawlJob(job.id, 'Test error'); // attempts (1) >= maxAttempts (1) → failed
     const failed = await getFailedJobs();
     expect(failed.length).toBeGreaterThanOrEqual(1);
   });
