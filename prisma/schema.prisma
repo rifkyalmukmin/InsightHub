@@ -75,17 +75,20 @@ model VerificationToken {
 }
 
 model NewsSource {
-  id          String   @id @default(cuid())
-  userId      String?
-  name        String
-  domain      String
-  url         String
-  description String?
-  category    String?
-  status      String   @default("active") // active, paused, error
-  lastCrawlAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  userId       String?
+  name         String
+  domain       String
+  url          String
+  feedUrl      String? // RSS/Atom feed URL — when set, syncs import from the feed
+  description  String?
+  category     String?
+  status       String    @default("active") // active, paused, error
+  autoRefresh  String    @default("none") // none, daily, weekly, monthly
+  nextCrawlAt  DateTime?
+  lastCrawlAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   articles    Article[]
@@ -95,6 +98,8 @@ model NewsSource {
   @@unique([userId, domain])
   @@index([userId])
   @@index([status])
+  @@index([autoRefresh])
+  @@index([nextCrawlAt])
 }
 
 model Article {

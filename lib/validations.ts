@@ -25,21 +25,27 @@ export const articleIdSchema = z.object({
 
 // ─── Sources ─────────────────────────────────────────────────────────────────
 
+export const autoRefreshSchema = z.enum(['none', 'daily', 'weekly', 'monthly']);
+
 export const createSourceSchema = z.object({
   name: z.string().trim().min(1).max(200),
   domain: z.string().trim().min(1).max(253),
   url: z.string().url().max(2048),
+  feedUrl: z.string().url().max(2048).optional(),
   description: z.string().trim().max(1000).optional(),
   category: z.string().trim().max(100).optional(),
+  autoRefresh: autoRefreshSchema.default('none'),
 });
 
 export const updateSourceSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   domain: z.string().trim().min(1).max(253).optional(),
   url: z.string().url().max(2048).optional(),
+  feedUrl: z.string().url().max(2048).nullable().optional(),
   description: z.string().trim().max(1000).optional(),
   category: z.string().trim().max(100).optional(),
   status: z.enum(['active', 'paused', 'error']).optional(),
+  autoRefresh: autoRefreshSchema.optional(),
 });
 
 // ─── Bookmarks ───────────────────────────────────────────────────────────────
@@ -127,11 +133,15 @@ export const registerSchema = z.object({
 /**
  * Safely parses a JSON request body against a Zod schema.
  * Returns `{ success: true, data }` or `{ success: false, error }`.
+ *
+ * The `data` type is the schema's *output* type, so fields with `.default()`
+ * are inferred as present (not `| undefined`) — callers get the value the
+ * schema actually produces after parsing.
  */
-export function validateBody<T>(
-  schema: z.ZodSchema<T>,
+export function validateBody<Schema extends z.ZodTypeAny>(
+  schema: Schema,
   body: unknown
-): { success: true; data: T } | { success: false; error: string } {
+): { success: true; data: z.output<Schema> } | { success: false; error: string } {
   const result = schema.safeParse(body);
   if (result.success) {
     return { success: true, data: result.data };

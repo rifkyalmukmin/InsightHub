@@ -66,12 +66,12 @@ export async function rateLimit(
   };
 }
 
-export function withRateLimit(
-  handler: (request: Request) => Promise<Response>,
+export function withRateLimit<Args extends unknown[]>(
+  handler: (request: Request, ...args: Args) => Promise<Response>,
   maxRequests: number = DEFAULT_MAX,
   windowMs: number = DEFAULT_WINDOW
 ) {
-  return async (request: Request) => {
+  return async (request: Request, ...args: Args) => {
     // Only trust x-forwarded-for when behind a trusted proxy (see TRUST_PROXY)
     const ip = getClientIp(request);
 
@@ -95,7 +95,7 @@ export function withRateLimit(
       );
     }
 
-    const response = await handler(request);
+    const response = await handler(request, ...args);
 
     response.headers.set('X-RateLimit-Limit', String(maxRequests));
     response.headers.set('X-RateLimit-Remaining', String(limit.remaining));

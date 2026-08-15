@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import { validateBody, articleIdSchema, updateSourceSchema } from '@/lib/validations';
+import { computeNextCrawlAt } from '@/lib/utils/schedule';
 
 export async function PUT(
   request: Request,
@@ -48,7 +49,14 @@ export async function PUT(
       );
     }
 
-    const { name, domain, url, description, category, status } = validation.data;
+    const { name, domain, url, feedUrl, description, category, status, autoRefresh } =
+      validation.data;
+
+    // When the schedule changes (or a feed is added/removed) reset the next
+    // run time so the new cadence starts from now.
+    const scheduleChanged =
+      autoRefresh !== undefined && autoRefresh !== existing.autoRefresh;
+    const feedChanged = feedUrl !== undefined && feedUrl !== existing.feedUrl;
 
     const source = await prisma.newsSource.update({
       where: { id },
@@ -56,9 +64,14 @@ export async function PUT(
         ...(name !== undefined && { name }),
         ...(domain !== undefined && { domain }),
         ...(url !== undefined && { url }),
+        ...(feedUrl !== undefined && { feedUrl }),
         ...(description !== undefined && { description }),
         ...(category !== undefined && { category }),
         ...(status !== undefined && { status }),
+        ...(autoRefresh !== undefined && { autoRefresh }),
+        ...((scheduleChanged || feedChanged) && {
+          nextCrawlAt: computeNextCrawlAt(autoRefresh ?? existing.autoRefresh),
+        }),
       },
     });
 

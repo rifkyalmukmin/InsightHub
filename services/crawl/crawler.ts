@@ -120,7 +120,7 @@ export async function processCrawledPage(page: CrawledPage): Promise<void> {
   }
 }
 
-function guessCategory(description: string): string {
+export function guessCategory(description: string): string {
   const lower = description.toLowerCase();
   const keywords: Record<string, string> = {
     ai: 'AI',

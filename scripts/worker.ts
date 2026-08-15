@@ -7,6 +7,7 @@
  */
 
 import { dequeueCrawlJob, failCrawlJob } from '@/lib/utils/jobQueue';
+import { runDueSourceSyncs } from '@/lib/utils/schedule';
 import { executeCrawlJob } from '@/services/crawl/processJob';
 import { logError, logger } from '@/lib/logger';
 
@@ -41,6 +42,10 @@ async function workerLoop() {
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         continue;
       }
+
+      // Scheduler pass — trigger auto-refresh for due sources (RSS feeds and
+      // scheduled crawls). Failures are handled inside and never kill the loop.
+      await runDueSourceSyncs();
 
       const job = await dequeueCrawlJob();
 

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
 import { getSessionUser } from '@/lib/auth/session';
 import { validateBody, createSourceSchema } from '@/lib/validations';
+import { computeNextCrawlAt } from '@/lib/utils/schedule';
+import { importRssFeed } from '@/services/rss/importer';
 import prisma from '@/lib/db/prisma';
 
 export const GET = withRateLimit(async (request: Request) => {
@@ -55,7 +57,7 @@ export const POST = withRateLimit(async (request: Request) => {
         { status: 400 }
       );
     }
-    const { name, domain, url, description, category } = validation.data;
+    const { name, domain, url, feedUrl, description, category, autoRefresh } = validation.data;
 
     // Check for duplicates
     const existing = await prisma.newsSource.findFirst({
@@ -77,17 +79,45 @@ export const POST = withRateLimit(async (request: Request) => {
         name,
         domain,
         url,
+        feedUrl: feedUrl ?? null,
         description,
         category,
         userId,
         status: 'active',
+        autoRefresh,
+        nextCrawlAt: computeNextCrawlAt(autoRefresh),
       },
     });
 
+    // If a feed URL was provided, import it right away so the user sees
+    // articles immediately. Import failures don't fail source creation.
+    let importResult: { ok: boolean; message: string; added?: number; total?: number } | undefined;
+    if (feedUrl) {
+      try {
+        const result = await importRssFeed(source.id);
+        importResult = {
+          ok: true,
+          message: `Imported ${result.added} article${result.added === 1 ? '' : 's'} from feed`,
+          added: result.added,
+          total: result.total,
+        };
+      } catch (importError) {
+        importResult = {
+          ok: false,
+          message:
+            importError instanceof Error
+              ? importError.message
+              : 'Failed to import feed — check the URL is a valid RSS/Atom feed',
+        };
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      data: source,
-      message: 'Source created successfully',
+      data: { ...source, importResult },
+      message: importResult?.ok
+        ? `Source created — ${importResult.message}`
+        : 'Source created successfully',
     });
   } catch (error) {
     return NextResponse.json(

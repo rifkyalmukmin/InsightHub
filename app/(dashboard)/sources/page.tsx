@@ -28,8 +28,10 @@ export default function SourcesPage() {
     name: '',
     domain: '',
     url: '',
+    feedUrl: '',
     description: '',
     category: '',
+    autoRefresh: 'none',
   });
 
   const { data: sources, isLoading, isError, refetch } = useQuery({
@@ -69,10 +71,28 @@ export default function SourcesPage() {
       if (!res.ok) throw new Error('Failed to add source');
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['sources'] });
       setIsAddOpen(false);
-      setFormData({ name: '', domain: '', url: '', description: '', category: '' });
+      setFormData({
+        name: '',
+        domain: '',
+        url: '',
+        feedUrl: '',
+        description: '',
+        category: '',
+        autoRefresh: 'none',
+      });
+      const imported = data.data?.importResult;
+      if (imported?.ok) {
+        toast({ title: 'Feed imported', description: imported.message });
+      } else if (imported && !imported.ok) {
+        toast({
+          title: 'Source added, feed failed',
+          description: imported.message,
+          variant: 'destructive',
+        });
+      }
     },
   });
 
@@ -142,29 +162,32 @@ export default function SourcesPage() {
     );
   };
 
-  const crawlSource = useMutation({
-    mutationFn: async ({ sourceId, url }: { sourceId: string; url: string }) => {
-      const res = await fetch('/api/crawl', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceId, url }),
-      });
-      if (!res.ok) throw new Error('Crawl failed');
+  const syncSource = useMutation({
+    mutationFn: async (sourceId: string) => {
+      const res = await fetch(`/api/sources/${sourceId}/sync`, { method: 'POST' });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.error || 'Sync failed');
+      }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsPolling(true);
       toast({
-        title: 'Crawl started',
-        description: 'Fetching articles. The page will update automatically.',
+        title: data.data?.type === 'rss' ? 'Feed synced' : 'Crawl started',
+        description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ['sources'] });
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       setIsCrawlOpen(false);
     },
-    onError: () => {
+    onError: (error) => {
       toast({
-        title: 'Crawl failed',
-        description: 'Check your FIRECRAWL_API_KEY and the source URL.',
+        title: 'Sync failed',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Check your API keys and the source URL.',
         variant: 'destructive',
       });
     },
@@ -177,10 +200,7 @@ export default function SourcesPage() {
 
   const handleCrawl = () => {
     if (selectedSource) {
-      const source = sourceList.find((s: { id: string }) => s.id === selectedSource);
-      if (source) {
-        crawlSource.mutate({ sourceId: selectedSource, url: source.url });
-      }
+      syncSource.mutate(selectedSource);
     }
   };
 
@@ -219,10 +239,10 @@ export default function SourcesPage() {
                   </div>
                   <Button
                     onClick={handleCrawl}
-                    disabled={crawlSource.isPending || !selectedSource}
+                    disabled={syncSource.isPending || !selectedSource}
                     className="w-full"
                   >
-                    {crawlSource.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {syncSource.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Start Crawling
                   </Button>
                 </div>
@@ -369,6 +389,34 @@ export default function SourcesPage() {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="feedUrl">RSS Feed URL (optional)</Label>
+                    <Input
+                      id="feedUrl"
+                      value={formData.feedUrl}
+                      onChange={(e) => setFormData({ ...formData, feedUrl: e.target.value })}
+                      placeholder="https://techcrunch.com/feed/"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      When set, articles are imported straight from the feed — no crawl needed.
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="autoRefresh">Auto-refresh</Label>
+                    <Select
+                      id="autoRefresh"
+                      value={formData.autoRefresh}
+                      onChange={(e) => setFormData({ ...formData, autoRefresh: e.target.value })}
+                    >
+                      <option value="none">Off</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Re-sync this source automatically (requires the crawl worker to be running).
+                    </p>
+                  </div>
+                  <div>
                     <Label htmlFor="description">Description (optional)</Label>
                     <Input
                       id="description"
@@ -443,6 +491,8 @@ export default function SourcesPage() {
               name: string;
               domain: string;
               url: string;
+              feedUrl: string | null;
+              autoRefresh: string;
               status: string;
               lastCrawlAt: string | null;
               _count: { articles: number };
@@ -478,6 +528,16 @@ export default function SourcesPage() {
                           <span className="text-xs text-muted-foreground">
                             {source._count.articles} articles
                           </span>
+                          {source.feedUrl && (
+                            <Badge variant="outline" className="text-[10px]">
+                              RSS
+                            </Badge>
+                          )}
+                          {source.autoRefresh !== 'none' && (
+                            <Badge variant="secondary" className="text-[10px]">
+                              {source.autoRefresh}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -507,8 +567,9 @@ export default function SourcesPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => crawlSource.mutate({ sourceId: source.id, url: source.url })}
-                        disabled={crawlSource.isPending}
+                        onClick={() => syncSource.mutate(source.id)}
+                        disabled={syncSource.isPending}
+                        title={source.feedUrl ? 'Sync RSS feed' : 'Crawl now'}
                       >
                         <RefreshCw className="h-4 w-4" />
                       </Button>

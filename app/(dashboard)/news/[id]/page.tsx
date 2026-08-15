@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils/cn';
@@ -37,6 +38,25 @@ export default function ArticleDetailPage() {
       if (!res.ok) throw new Error('Failed to fetch article');
       const json = await res.json();
       return json.data;
+    },
+    enabled: !!articleId,
+  });
+
+  const { data: similarArticles } = useQuery({
+    queryKey: ['article-similar', articleId],
+    queryFn: async () => {
+      const res = await fetch(`/api/articles/${articleId}/similar?limit=5`);
+      if (!res.ok) throw new Error('Failed to fetch similar articles');
+      const json = await res.json();
+      return (json.data || []) as {
+        article: {
+          id: string;
+          title: string;
+          source: { name: string } | null;
+          summary: { short: string | null } | null;
+        };
+        score: number;
+      }[];
     },
     enabled: !!articleId,
   });
@@ -287,6 +307,39 @@ export default function ArticleDetailPage() {
           </SafeMarkdown>
         </CardContent>
       </Card>
+
+      {similarArticles && similarArticles.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Similar Articles
+            </h2>
+            <div className="space-y-3">
+              {similarArticles.map(({ article: similar, score }) => (
+                <Link
+                  key={similar.id}
+                  href={`/news/${similar.id}`}
+                  className="block rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-medium text-sm line-clamp-2">{similar.title}</h3>
+                    <Badge variant="secondary" className="shrink-0 text-[10px]">
+                      {Math.round(score * 100)}% match
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                    {similar.source?.name && <span>{similar.source.name}</span>}
+                    {similar.summary?.short && (
+                      <span className="line-clamp-1">{similar.summary.short}</span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
