@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { getSessionUser } from '@/lib/auth/session';
+import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import { validateBody, articleIdSchema } from '@/lib/validations';
 
 export async function GET(
@@ -80,7 +80,9 @@ export async function DELETE(
     }
     const { id } = idValidation.data;
 
-    // Verify ownership before deleting
+    // Verify ownership before deleting. Articles with no owner (userId: null)
+    // are shared/global resources — only admins may delete them, so any
+    // authenticated user can no longer destroy shared content.
     const article = await prisma.article.findUnique({ where: { id } });
     if (!article) {
       return NextResponse.json(
@@ -88,7 +90,7 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    if (article.userId && article.userId !== userId) {
+    if (article.userId ? article.userId !== userId : !isAdmin(auth.user)) {
       return NextResponse.json(
         { success: false, error: 'Forbidden' },
         { status: 403 }

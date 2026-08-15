@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth/session';
+import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import { validateBody, articleIdSchema } from '@/lib/validations';
 import prisma from '@/lib/db/prisma';
 
@@ -26,6 +26,15 @@ export async function DELETE(
       return NextResponse.json(
         { success: false, error: 'Topic not found' },
         { status: 404 }
+      );
+    }
+
+    // Topics are global resources with no per-user owner — only admins may
+    // delete them so regular users cannot destroy shared taxonomy.
+    if (!isAdmin(auth.user)) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden' },
+        { status: 403 }
       );
     }
 

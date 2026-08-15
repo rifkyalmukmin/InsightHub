@@ -17,6 +17,16 @@ export interface SessionResult {
 }
 
 /**
+ * Returns true if the authenticated user holds the admin role.
+ * Admins are allowed to manage shared/global resources (articles, sources,
+ * topics) that regular users may only read — this closes the authorization
+ * bypass where unowned resources (userId: null) were modifiable by anyone.
+ */
+export function isAdmin(user: Pick<AuthenticatedUser, 'role'>): boolean {
+  return user.role === 'admin';
+}
+
+/**
  * Verifies that the request has a valid NextAuth session and returns the
  * authenticated user. If the session is missing or invalid, returns an
  * `error` NextResponse (401) that should be returned immediately.

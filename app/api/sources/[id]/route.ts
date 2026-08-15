@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { getSessionUser } from '@/lib/auth/session';
+import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import { validateBody, articleIdSchema, updateSourceSchema } from '@/lib/validations';
 
 export async function PUT(
@@ -30,7 +30,9 @@ export async function PUT(
         { status: 404 }
       );
     }
-    if (existing.userId && existing.userId !== userId) {
+    // Owner may modify their own source; unowned (global) sources are
+    // admin-only so any authenticated user can no longer edit/delete them.
+    if (existing.userId ? existing.userId !== userId : !isAdmin(auth.user)) {
       return NextResponse.json(
         { success: false, error: 'Forbidden' },
         { status: 403 }
@@ -91,7 +93,9 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    if (existing.userId && existing.userId !== userId) {
+    // Owner may modify their own source; unowned (global) sources are
+    // admin-only so any authenticated user can no longer edit/delete them.
+    if (existing.userId ? existing.userId !== userId : !isAdmin(auth.user)) {
       return NextResponse.json(
         { success: false, error: 'Forbidden' },
         { status: 403 }

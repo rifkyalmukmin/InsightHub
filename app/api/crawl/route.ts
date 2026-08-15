@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/utils/rateLimit';
-import { getSessionUser } from '@/lib/auth/session';
+import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import prisma from '@/lib/db/prisma';
 import { validateBody, crawlSchema } from '@/lib/validations';
 import { getCrawlUrlError } from '@/lib/utils/url';
@@ -40,8 +40,12 @@ export const POST = withRateLimit(async (request: Request) => {
 
     if (sourceId) {
       source = await prisma.newsSource.findUnique({ where: { id: sourceId } });
-      // Verify ownership if source belongs to a user
-      if (source && source.userId && source.userId !== userId) {
+      // Verify ownership if source belongs to a user; unowned (global) sources
+      // are admin-only to prevent abuse of shared crawl quota.
+      if (
+        source &&
+        (source.userId ? source.userId !== userId : !isAdmin(auth.user))
+      ) {
         return NextResponse.json(
           { success: false, error: 'Forbidden' },
           { status: 403 }
