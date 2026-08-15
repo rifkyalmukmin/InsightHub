@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for lib/logger.ts</title>
+    <title>Code coverage report for lib/utils/ip.ts</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">lib</a> logger.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">lib/utils</a> ip.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/8</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -91,19 +91,7 @@
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
 <a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -115,37 +103,49 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import pino from 'pino';
-&nbsp;
-const isDev = process.env.NODE_ENV !== 'production';
-const level = process.env.LOG_LEVEL || (isDev ? 'debug' : <span class="branch-1 cbranch-no" title="branch not covered" >'info')</span>;
-&nbsp;
-/**
- * pino-pretty uses worker threads (thread-stream) which break when bundled
- * by Next.js/webpack. Only enable pretty transport in standalone scripts
- * (e.g. `npm run worker`) where NEXT_RUNTIME is not set.
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
+ * Resolves the client IP used for rate limiting.
+ *
+ * `x-forwarded-for` is fully client-controlled unless the app runs behind a
+ * proxy that overwrites it (Vercel, Cloudflare, nginx/Caddy with proper
+ * config). Trusting it unconditionally lets anyone rotate the header to get a
+ * fresh rate-limit bucket — bypassing registration/login/API limits entirely.
+ *
+ * So `x-forwarded-for` is only read when TRUST_PROXY is enabled (set it when
+ * deploying behind Vercel, Cloudflare, or a reverse proxy that strips/replaces
+ * client-supplied headers). Otherwise the request falls back to `x-real-ip`
+ * (set by nginx/Cloudflare) and finally `unknown`.
+ *
+ * Note: `x-real-ip` is equally spoofable on a bare server — for a strictly
+ * correct setup, put the app behind a trusted proxy and enable TRUST_PROXY.
  */
-const isNextRuntime = Boolean(process.env.NEXT_RUNTIME);
+export function getClientIp(request: Request): string {
+  if (isTrustProxyEnabled()) {
+    const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    if (forwarded) return forwarded;
+  }
+  return request.headers.get('x-real-ip') || 'unknown';
+}
 &nbsp;
-export const logger = pino(
-  isDev &amp;&amp; !isNextRuntime
-    ? {
-        level,
-        transport: {
-          target: 'pino-pretty',
-          options: { colorize: true, translateTime: 'HH:MM:ss' },
-        },
-      }
-    : <span class="branch-1 cbranch-no" title="branch not covered" >{ level }</span>
-);
-&nbsp;
-export function <span class="fstat-no" title="function not covered" >logError(</span>context: string, error: unknown, meta?: Record&lt;string, unknown&gt;) {
-  const message = <span class="cstat-no" title="statement not covered" >error instanceof Error ? error.message : String(error);</span>
-<span class="cstat-no" title="statement not covered" >  logger.error({ context, err: message, ...meta }, `${context} failed`);</span>
+function isTrustProxyEnabled(): boolean {
+  const value = process.env.TRUST_PROXY?.trim().toLowerCase();
+  return value === 'true' || value === '1' || value === 'yes' || value === 'on';
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -156,14 +156,14 @@ export function <span class="fstat-no" title="function not covered" >logError(</
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2026-08-15T12:43:33.733Z
             </div>
-        <script src="../prettify.js"></script>
+        <script src="../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
     </body>
 </html>
     

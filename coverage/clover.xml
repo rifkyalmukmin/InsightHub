@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1786770212325" clover="3.2.0">
-  <project timestamp="1786770212325" name="All files">
-    <metrics statements="631" coveredstatements="387" conditionals="410" coveredconditionals="151" methods="76" coveredmethods="43" elements="1117" coveredelements="581" complexity="0" loc="631" ncloc="631" packages="12" files="24" classes="24"/>
+<coverage generated="1786797813764" clover="3.2.0">
+  <project timestamp="1786797813764" name="All files">
+    <metrics statements="778" coveredstatements="561" conditionals="537" coveredconditionals="246" methods="101" coveredmethods="71" elements="1416" coveredelements="878" complexity="0" loc="778" ncloc="778" packages="15" files="31" classes="31"/>
     <package name="app.api.articles.[id]">
       <metrics statements="39" coveredstatements="32" conditionals="12" coveredconditionals="4" methods="2" coveredmethods="2"/>
       <file name="route.ts" path="/Users/rifky/InsightHub/app/api/articles/[id]/route.ts">
@@ -107,51 +107,114 @@
         <line num="4" count="1" type="stmt"/>
       </file>
     </package>
-    <package name="app.api.sources.[id]">
-      <metrics statements="41" coveredstatements="35" conditionals="24" coveredconditionals="13" methods="2" coveredmethods="2"/>
-      <file name="route.ts" path="/Users/rifky/InsightHub/app/api/sources/[id]/route.ts">
-        <metrics statements="41" coveredstatements="35" conditionals="24" coveredconditionals="13" methods="2" coveredmethods="2"/>
+    <package name="app.api.notifications">
+      <metrics statements="26" coveredstatements="24" conditionals="3" coveredconditionals="3" methods="2" coveredmethods="2"/>
+      <file name="route.ts" path="/Users/rifky/InsightHub/app/api/notifications/route.ts">
+        <metrics statements="26" coveredstatements="24" conditionals="3" coveredconditionals="3" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="40" count="3" type="stmt"/>
+        <line num="41" count="3" type="stmt"/>
+        <line num="42" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="45" count="2" type="stmt"/>
+        <line num="46" count="2" type="stmt"/>
+        <line num="47" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="59" count="1" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.api.notifications.[id]">
+      <metrics statements="22" coveredstatements="20" conditionals="4" coveredconditionals="2" methods="1" coveredmethods="1"/>
+      <file name="route.ts" path="/Users/rifky/InsightHub/app/api/notifications/[id]/route.ts">
+        <metrics statements="22" coveredstatements="20" conditionals="4" coveredconditionals="2" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
         <line num="6" count="1" type="stmt"/>
-        <line num="10" count="2" type="stmt"/>
-        <line num="11" count="2" type="stmt"/>
-        <line num="12" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="13" count="2" type="stmt"/>
-        <line num="15" count="2" type="stmt"/>
-        <line num="16" count="2" type="stmt"/>
-        <line num="17" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="3" type="stmt"/>
+        <line num="12" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="13" count="3" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="16" count="3" type="stmt"/>
+        <line num="17" count="3" type="cond" truecount="0" falsecount="1"/>
         <line num="18" count="0" type="stmt"/>
-        <line num="23" count="2" type="stmt"/>
-        <line num="26" count="2" type="stmt"/>
-        <line num="27" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="28" count="0" type="stmt"/>
-        <line num="35" count="2" type="cond" truecount="3" falsecount="0"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="42" count="1" type="stmt"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="25" count="3" type="stmt"/>
+        <line num="26" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="34" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.api.sources.[id]">
+      <metrics statements="44" coveredstatements="38" conditionals="39" coveredconditionals="19" methods="2" coveredmethods="2"/>
+      <file name="route.ts" path="/Users/rifky/InsightHub/app/api/sources/[id]/route.ts">
+        <metrics statements="44" coveredstatements="38" conditionals="39" coveredconditionals="19" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="18" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="28" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="36" count="2" type="cond" truecount="3" falsecount="0"/>
+        <line num="37" count="1" type="stmt"/>
         <line num="43" count="1" type="stmt"/>
-        <line num="44" count="1" type="cond" truecount="0" falsecount="1"/>
-        <line num="45" count="0" type="stmt"/>
-        <line num="51" count="1" type="stmt"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="45" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="46" count="0" type="stmt"/>
         <line num="53" count="1" type="stmt"/>
-        <line num="65" count="1" type="stmt"/>
-        <line num="70" count="0" type="stmt"/>
-        <line num="77" count="1" type="stmt"/>
-        <line num="81" count="3" type="stmt"/>
-        <line num="82" count="3" type="stmt"/>
-        <line num="83" count="3" type="cond" truecount="0" falsecount="1"/>
-        <line num="84" count="3" type="stmt"/>
-        <line num="86" count="3" type="stmt"/>
-        <line num="89" count="3" type="stmt"/>
-        <line num="90" count="3" type="cond" truecount="0" falsecount="1"/>
-        <line num="91" count="0" type="stmt"/>
-        <line num="98" count="3" type="cond" truecount="3" falsecount="0"/>
-        <line num="99" count="1" type="stmt"/>
-        <line num="105" count="2" type="stmt"/>
-        <line num="109" count="2" type="stmt"/>
-        <line num="114" count="0" type="stmt"/>
+        <line num="58" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="59" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="78" count="1" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="90" count="1" type="stmt"/>
+        <line num="94" count="3" type="stmt"/>
+        <line num="95" count="3" type="stmt"/>
+        <line num="96" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="97" count="3" type="stmt"/>
+        <line num="99" count="3" type="stmt"/>
+        <line num="102" count="3" type="stmt"/>
+        <line num="103" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="111" count="3" type="cond" truecount="3" falsecount="0"/>
+        <line num="112" count="1" type="stmt"/>
+        <line num="118" count="2" type="stmt"/>
+        <line num="122" count="2" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
       </file>
     </package>
     <package name="app.api.topics.[id]">
@@ -183,45 +246,47 @@
       </file>
     </package>
     <package name="lib">
-      <metrics statements="33" coveredstatements="25" conditionals="13" coveredconditionals="7" methods="4" coveredmethods="1"/>
+      <metrics statements="35" coveredstatements="29" conditionals="13" coveredconditionals="8" methods="4" coveredmethods="1"/>
       <file name="logger.ts" path="/Users/rifky/InsightHub/lib/logger.ts">
         <metrics statements="8" coveredstatements="6" conditionals="10" coveredconditionals="6" methods="1" coveredmethods="0"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="3" count="3" type="stmt"/>
-        <line num="4" count="3" type="cond" truecount="3" falsecount="1"/>
-        <line num="11" count="3" type="stmt"/>
-        <line num="13" count="3" type="stmt"/>
-        <line num="25" count="3" type="stmt"/>
+        <line num="1" count="7" type="stmt"/>
+        <line num="3" count="7" type="stmt"/>
+        <line num="4" count="7" type="cond" truecount="3" falsecount="1"/>
+        <line num="11" count="7" type="stmt"/>
+        <line num="13" count="7" type="stmt"/>
+        <line num="25" count="7" type="stmt"/>
         <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="27" count="0" type="stmt"/>
       </file>
       <file name="validations.ts" path="/Users/rifky/InsightHub/lib/validations.ts">
-        <metrics statements="25" coveredstatements="19" conditionals="3" coveredconditionals="1" methods="3" coveredmethods="1"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="10" count="2" type="stmt"/>
-        <line num="22" count="2" type="stmt"/>
-        <line num="28" count="2" type="stmt"/>
-        <line num="36" count="2" type="stmt"/>
-        <line num="47" count="2" type="stmt"/>
-        <line num="52" count="2" type="stmt"/>
-        <line num="61" count="2" type="stmt"/>
-        <line num="74" count="2" type="stmt"/>
-        <line num="83" count="2" type="stmt"/>
-        <line num="90" count="2" type="stmt"/>
-        <line num="96" count="2" type="stmt"/>
-        <line num="103" count="2" type="stmt"/>
-        <line num="113" count="2" type="stmt"/>
-        <line num="125" count="2" type="stmt"/>
-        <line num="129" count="11" type="stmt"/>
-        <line num="130" count="11" type="cond" truecount="1" falsecount="0"/>
-        <line num="131" count="11" type="stmt"/>
-        <line num="133" count="0" type="stmt"/>
-        <line num="134" count="0" type="stmt"/>
-        <line num="144" count="2" type="stmt"/>
-        <line num="148" count="0" type="stmt"/>
-        <line num="149" count="0" type="stmt"/>
-        <line num="150" count="0" type="stmt"/>
-        <line num="152" count="0" type="stmt"/>
+        <metrics statements="27" coveredstatements="23" conditionals="3" coveredconditionals="2" methods="3" coveredmethods="1"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="22" count="3" type="stmt"/>
+        <line num="28" count="3" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+        <line num="40" count="3" type="stmt"/>
+        <line num="53" count="3" type="stmt"/>
+        <line num="58" count="3" type="stmt"/>
+        <line num="67" count="3" type="stmt"/>
+        <line num="80" count="3" type="stmt"/>
+        <line num="89" count="3" type="stmt"/>
+        <line num="96" count="3" type="stmt"/>
+        <line num="102" count="3" type="stmt"/>
+        <line num="109" count="3" type="stmt"/>
+        <line num="119" count="3" type="stmt"/>
+        <line num="125" count="3" type="stmt"/>
+        <line num="141" count="3" type="stmt"/>
+        <line num="145" count="16" type="stmt"/>
+        <line num="146" count="16" type="cond" truecount="1" falsecount="0"/>
+        <line num="147" count="15" type="stmt"/>
+        <line num="149" count="1" type="stmt"/>
+        <line num="150" count="1" type="stmt"/>
+        <line num="160" count="3" type="stmt"/>
+        <line num="164" count="0" type="stmt"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="168" count="0" type="stmt"/>
       </file>
     </package>
     <package name="lib.db">
@@ -235,8 +300,36 @@
         <line num="15" count="4" type="stmt"/>
       </file>
     </package>
+    <package name="lib.email">
+      <metrics statements="22" coveredstatements="18" conditionals="10" coveredconditionals="6" methods="4" coveredmethods="4"/>
+      <file name="client.ts" path="/Users/rifky/InsightHub/lib/email/client.ts">
+        <metrics statements="22" coveredstatements="18" conditionals="10" coveredconditionals="6" methods="4" coveredmethods="4"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="9" type="stmt"/>
+        <line num="20" count="3" type="stmt"/>
+        <line num="21" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="42" count="3" type="stmt"/>
+        <line num="43" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="48" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="50" count="3" type="stmt"/>
+        <line num="51" count="3" type="stmt"/>
+        <line num="58" count="3" type="stmt"/>
+        <line num="59" count="3" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="75" count="3" type="stmt"/>
+        <line num="89" count="3" type="stmt"/>
+      </file>
+    </package>
     <package name="lib.utils">
-      <metrics statements="196" coveredstatements="151" conditionals="119" coveredconditionals="74" methods="35" coveredmethods="24"/>
+      <metrics statements="259" coveredstatements="198" conditionals="164" coveredconditionals="108" methods="44" coveredmethods="30"/>
       <file name="api-error.ts" path="/Users/rifky/InsightHub/lib/utils/api-error.ts">
         <metrics statements="5" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
@@ -245,110 +338,152 @@
         <line num="14" count="0" type="stmt"/>
         <line num="15" count="0" type="stmt"/>
       </file>
+      <file name="env.ts" path="/Users/rifky/InsightHub/lib/utils/env.ts">
+        <metrics statements="10" coveredstatements="6" conditionals="9" coveredconditionals="8" methods="3" coveredmethods="1"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="33" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="34" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="35" count="4" type="stmt"/>
+      </file>
       <file name="format.ts" path="/Users/rifky/InsightHub/lib/utils/format.ts">
         <metrics statements="25" coveredstatements="10" conditionals="18" coveredconditionals="0" methods="7" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="2" count="2" type="stmt"/>
-        <line num="5" count="2" type="stmt"/>
-        <line num="14" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="14" count="3" type="cond" truecount="0" falsecount="1"/>
         <line num="15" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="16" count="0" type="stmt"/>
-        <line num="19" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="19" count="3" type="cond" truecount="0" falsecount="1"/>
         <line num="20" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="21" count="0" type="stmt"/>
-        <line num="24" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="24" count="3" type="cond" truecount="0" falsecount="1"/>
         <line num="25" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="26" count="0" type="stmt"/>
-        <line num="29" count="2" type="stmt"/>
+        <line num="29" count="3" type="stmt"/>
         <line num="30" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="31" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="32" count="0" type="stmt"/>
-        <line num="35" count="2" type="stmt"/>
+        <line num="35" count="3" type="stmt"/>
         <line num="36" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="37" count="0" type="stmt"/>
-        <line num="40" count="2" type="stmt"/>
+        <line num="40" count="3" type="stmt"/>
         <line num="41" count="0" type="stmt"/>
         <line num="42" count="0" type="stmt"/>
         <line num="44" count="0" type="stmt"/>
-        <line num="48" count="2" type="stmt"/>
+        <line num="48" count="3" type="stmt"/>
         <line num="49" count="0" type="stmt"/>
       </file>
+      <file name="ip.ts" path="/Users/rifky/InsightHub/lib/utils/ip.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="20" coveredconditionals="20" methods="2" coveredmethods="2"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="18" count="12" type="cond" truecount="1" falsecount="0"/>
+        <line num="19" count="3" type="cond" truecount="8" falsecount="0"/>
+        <line num="20" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="22" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="12" type="cond" truecount="4" falsecount="0"/>
+        <line num="27" count="12" type="cond" truecount="4" falsecount="0"/>
+      </file>
       <file name="jobQueue.ts" path="/Users/rifky/InsightHub/lib/utils/jobQueue.ts">
-        <metrics statements="24" coveredstatements="24" conditionals="18" coveredconditionals="13" methods="7" coveredmethods="7"/>
-        <line num="1" count="3" type="stmt"/>
-        <line num="19" count="3" type="stmt"/>
-        <line num="20" count="7" type="stmt"/>
-        <line num="31" count="7" type="stmt"/>
-        <line num="38" count="3" type="stmt"/>
-        <line num="39" count="2" type="stmt"/>
-        <line num="48" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="51" count="2" type="stmt"/>
-        <line num="60" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="62" count="2" type="stmt"/>
-        <line num="71" count="3" type="stmt"/>
-        <line num="75" count="1" type="stmt"/>
-        <line num="88" count="3" type="stmt"/>
-        <line num="92" count="2" type="stmt"/>
-        <line num="96" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="98" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="100" count="1" type="stmt"/>
-        <line num="109" count="1" type="stmt"/>
-        <line num="123" count="3" type="stmt"/>
-        <line num="124" count="1" type="stmt"/>
-        <line num="136" count="3" type="stmt"/>
-        <line num="137" count="1" type="stmt"/>
-        <line num="145" count="3" type="cond" truecount="1" falsecount="0"/>
-        <line num="146" count="1" type="stmt"/>
+        <metrics statements="42" coveredstatements="41" conditionals="24" coveredconditionals="20" methods="8" coveredmethods="8"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="9" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="11" count="4" type="stmt"/>
+        <line num="29" count="4" type="stmt"/>
+        <line num="30" count="11" type="stmt"/>
+        <line num="41" count="11" type="stmt"/>
+        <line num="52" count="8" type="stmt"/>
+        <line num="61" count="8" type="cond" truecount="0" falsecount="1"/>
+        <line num="63" count="8" type="stmt"/>
+        <line num="81" count="4" type="stmt"/>
+        <line num="83" count="10" type="stmt"/>
+        <line num="88" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="89" count="6" type="stmt"/>
+        <line num="90" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="94" count="4" type="stmt"/>
+        <line num="95" count="4" type="stmt"/>
+        <line num="100" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="102" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="103" count="1" type="stmt"/>
+        <line num="107" count="1" type="stmt"/>
+        <line num="115" count="1" type="stmt"/>
+        <line num="118" count="2" type="stmt"/>
+        <line num="119" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="120" count="2" type="stmt"/>
+        <line num="123" count="2" type="stmt"/>
+        <line num="127" count="2" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="136" count="4" type="stmt"/>
+        <line num="140" count="1" type="stmt"/>
+        <line num="153" count="4" type="stmt"/>
+        <line num="157" count="2" type="stmt"/>
+        <line num="161" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="163" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="165" count="1" type="stmt"/>
+        <line num="174" count="1" type="stmt"/>
+        <line num="188" count="4" type="stmt"/>
+        <line num="189" count="1" type="stmt"/>
+        <line num="201" count="4" type="stmt"/>
+        <line num="202" count="1" type="stmt"/>
+        <line num="210" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="211" count="1" type="stmt"/>
       </file>
       <file name="rateLimit-prisma.ts" path="/Users/rifky/InsightHub/lib/utils/rateLimit-prisma.ts">
-        <metrics statements="32" coveredstatements="30" conditionals="26" coveredconditionals="18" methods="3" coveredmethods="3"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="2" count="2" type="stmt"/>
-        <line num="3" count="2" type="stmt"/>
-        <line num="5" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="6" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="8" count="2" type="stmt"/>
-        <line num="13" count="5" type="stmt"/>
-        <line num="14" count="5" type="cond" truecount="0" falsecount="1"/>
-        <line num="16" count="5" type="stmt"/>
-        <line num="17" count="5" type="stmt"/>
-        <line num="18" count="5" type="stmt"/>
-        <line num="21" count="5" type="cond" truecount="0" falsecount="1"/>
-        <line num="22" count="0" type="stmt"/>
-        <line num="28" count="5" type="stmt"/>
-        <line num="32" count="5" type="cond" truecount="3" falsecount="0"/>
-        <line num="33" count="3" type="stmt"/>
-        <line num="45" count="3" type="stmt"/>
-        <line num="48" count="2" type="cond" truecount="1" falsecount="0"/>
-        <line num="49" count="1" type="stmt"/>
-        <line num="56" count="1" type="stmt"/>
-        <line num="61" count="1" type="stmt"/>
-        <line num="68" count="2" type="stmt"/>
-        <line num="73" count="3" type="stmt"/>
-        <line num="75" count="2" type="cond" truecount="8" falsecount="3"/>
-        <line num="79" count="2" type="stmt"/>
-        <line num="81" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="82" count="0" type="stmt"/>
-        <line num="99" count="2" type="stmt"/>
-        <line num="101" count="2" type="stmt"/>
-        <line num="102" count="2" type="stmt"/>
-        <line num="103" count="2" type="stmt"/>
-        <line num="105" count="2" type="stmt"/>
+        <metrics statements="33" coveredstatements="31" conditionals="15" coveredconditionals="10" methods="3" coveredmethods="3"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="6" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="7" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="14" count="10" type="stmt"/>
+        <line num="15" count="10" type="cond" truecount="0" falsecount="1"/>
+        <line num="17" count="10" type="stmt"/>
+        <line num="18" count="10" type="stmt"/>
+        <line num="19" count="10" type="stmt"/>
+        <line num="22" count="10" type="cond" truecount="0" falsecount="1"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="29" count="10" type="stmt"/>
+        <line num="33" count="10" type="cond" truecount="3" falsecount="0"/>
+        <line num="34" count="8" type="stmt"/>
+        <line num="46" count="8" type="stmt"/>
+        <line num="49" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="69" count="3" type="stmt"/>
+        <line num="74" count="5" type="stmt"/>
+        <line num="76" count="7" type="stmt"/>
+        <line num="78" count="7" type="stmt"/>
+        <line num="80" count="7" type="cond" truecount="0" falsecount="1"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="98" count="7" type="stmt"/>
+        <line num="100" count="7" type="stmt"/>
+        <line num="101" count="7" type="stmt"/>
+        <line num="102" count="7" type="stmt"/>
+        <line num="104" count="7" type="stmt"/>
       </file>
       <file name="rateLimit-redis.ts" path="/Users/rifky/InsightHub/lib/utils/rateLimit-redis.ts">
         <metrics statements="26" coveredstatements="8" conditionals="8" coveredconditionals="2" methods="3" coveredmethods="2"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="2" count="2" type="stmt"/>
-        <line num="4" count="2" type="stmt"/>
-        <line num="7" count="5" type="stmt"/>
-        <line num="8" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="7" count="10" type="stmt"/>
+        <line num="8" count="10" type="cond" truecount="1" falsecount="0"/>
         <line num="10" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="11" count="0" type="stmt"/>
         <line num="15" count="0" type="stmt"/>
         <line num="17" count="0" type="stmt"/>
-        <line num="20" count="2" type="stmt"/>
-        <line num="25" count="5" type="stmt"/>
-        <line num="26" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="20" count="3" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="26" count="10" type="cond" truecount="1" falsecount="0"/>
         <line num="28" count="0" type="stmt"/>
         <line num="29" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="30" count="0" type="stmt"/>
@@ -366,16 +501,46 @@
       </file>
       <file name="rateLimit.ts" path="/Users/rifky/InsightHub/lib/utils/rateLimit.ts">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="1" type="stmt"/>
-        <line num="3" count="1" type="stmt"/>
-        <line num="4" count="1" type="stmt"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+      </file>
+      <file name="schedule.ts" path="/Users/rifky/InsightHub/lib/utils/schedule.ts">
+        <metrics statements="29" coveredstatements="17" conditionals="21" coveredconditionals="7" methods="4" coveredmethods="2"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="21" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="41" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="42" count="2" type="stmt"/>
+        <line num="53" count="2" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="84" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
       </file>
       <file name="slugify.ts" path="/Users/rifky/InsightHub/lib/utils/slugify.ts">
-        <metrics statements="4" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
+        <metrics statements="2" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
         <line num="2" count="0" type="stmt"/>
-        <line num="10" count="2" type="stmt"/>
-        <line num="11" count="0" type="stmt"/>
       </file>
       <file name="url.ts" path="/Users/rifky/InsightHub/lib/utils/url.ts">
         <metrics statements="18" coveredstatements="17" conditionals="19" coveredconditionals="14" methods="2" coveredmethods="2"/>
@@ -462,7 +627,7 @@
       </file>
     </package>
     <package name="services.analytics">
-      <metrics statements="54" coveredstatements="47" conditionals="61" coveredconditionals="39" methods="10" coveredmethods="9"/>
+      <metrics statements="79" coveredstatements="71" conditionals="72" coveredconditionals="48" methods="18" coveredmethods="16"/>
       <file name="articleQuery.ts" path="/Users/rifky/InsightHub/services/analytics/articleQuery.ts">
         <metrics statements="54" coveredstatements="47" conditionals="61" coveredconditionals="39" methods="10" coveredmethods="9"/>
         <line num="1" count="1" type="stmt"/>
@@ -520,157 +685,78 @@
         <line num="203" count="1" type="stmt"/>
         <line num="208" count="1" type="stmt"/>
       </file>
+      <file name="similar.ts" path="/Users/rifky/InsightHub/services/analytics/similar.ts">
+        <metrics statements="25" coveredstatements="24" conditionals="11" coveredconditionals="9" methods="8" coveredmethods="7"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="23" count="5" type="stmt"/>
+        <line num="28" count="25" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="58" count="3" type="stmt"/>
+        <line num="67" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="69" count="2" type="stmt"/>
+        <line num="72" count="2" type="stmt"/>
+        <line num="90" count="2" type="stmt"/>
+        <line num="92" count="2" type="stmt"/>
+        <line num="94" count="3" type="stmt"/>
+        <line num="96" count="3" type="stmt"/>
+        <line num="97" count="3" type="stmt"/>
+        <line num="98" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="100" count="3" type="stmt"/>
+        <line num="101" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="103" count="3" type="stmt"/>
+        <line num="104" count="3" type="stmt"/>
+        <line num="106" count="3" type="stmt"/>
+        <line num="108" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="110" count="3" type="stmt"/>
+        <line num="116" count="3" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="120" count="2" type="stmt"/>
+      </file>
     </package>
     <package name="services.crawl">
-      <metrics statements="123" coveredstatements="17" conditionals="107" coveredconditionals="0" methods="10" coveredmethods="0"/>
+      <metrics statements="35" coveredstatements="7" conditionals="28" coveredconditionals="0" methods="3" coveredmethods="0"/>
       <file name="crawler.ts" path="/Users/rifky/InsightHub/services/crawl/crawler.ts">
-        <metrics statements="67" coveredstatements="9" conditionals="57" coveredconditionals="0" methods="6" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="2" count="2" type="stmt"/>
-        <line num="3" count="2" type="stmt"/>
-        <line num="4" count="2" type="stmt"/>
-        <line num="5" count="2" type="stmt"/>
-        <line num="6" count="2" type="stmt"/>
-        <line num="15" count="2" type="stmt"/>
-        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="22" count="0" type="stmt"/>
-        <line num="31" count="0" type="stmt"/>
-        <line num="39" count="0" type="stmt"/>
-        <line num="47" count="0" type="stmt"/>
-        <line num="49" count="0" type="stmt"/>
-        <line num="59" count="0" type="stmt"/>
-        <line num="61" count="0" type="stmt"/>
-        <line num="64" count="0" type="stmt"/>
-        <line num="65" count="0" type="stmt"/>
-        <line num="67" count="0" type="stmt"/>
-        <line num="68" count="0" type="stmt"/>
-        <line num="69" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="70" count="0" type="cond" truecount="0" falsecount="3"/>
-        <line num="71" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="73" count="0" type="stmt"/>
-        <line num="74" count="0" type="stmt"/>
-        <line num="77" count="0" type="cond" truecount="0" falsecount="4"/>
-        <line num="78" count="0" type="stmt"/>
-        <line num="82" count="0" type="stmt"/>
-        <line num="83" count="0" type="stmt"/>
-        <line num="85" count="0" type="stmt"/>
-        <line num="86" count="0" type="stmt"/>
-        <line num="87" count="0" type="stmt"/>
-        <line num="92" count="0" type="stmt"/>
-        <line num="94" count="0" type="cond" truecount="0" falsecount="11"/>
-        <line num="95" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="100" count="0" type="stmt"/>
-        <line num="112" count="0" type="stmt"/>
-        <line num="118" count="0" type="stmt"/>
-        <line num="123" count="0" type="stmt"/>
-        <line num="132" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="134" count="0" type="stmt"/>
-        <line num="138" count="2" type="stmt"/>
-        <line num="139" count="0" type="stmt"/>
-        <line num="141" count="0" type="stmt"/>
-        <line num="142" count="0" type="stmt"/>
-        <line num="146" count="0" type="stmt"/>
-        <line num="156" count="0" type="stmt"/>
-        <line num="172" count="2" type="stmt"/>
-        <line num="173" count="0" type="stmt"/>
-        <line num="174" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="176" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="177" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="180" count="0" type="stmt"/>
-        <line num="184" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="186" count="0" type="stmt"/>
-        <line num="189" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="190" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="191" count="0" type="stmt"/>
-        <line num="194" count="0" type="stmt"/>
-        <line num="212" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="213" count="0" type="stmt"/>
-        <line num="214" count="0" type="stmt"/>
-        <line num="220" count="0" type="stmt"/>
-        <line num="230" count="0" type="stmt"/>
-        <line num="231" count="0" type="stmt"/>
-        <line num="262" count="0" type="stmt"/>
-        <line num="263" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="266" count="0" type="stmt"/>
-      </file>
-      <file name="processJob.ts" path="/Users/rifky/InsightHub/services/crawl/processJob.ts">
-        <metrics statements="56" coveredstatements="8" conditionals="50" coveredconditionals="0" methods="4" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="2" count="2" type="stmt"/>
-        <line num="3" count="2" type="stmt"/>
-        <line num="4" count="2" type="stmt"/>
-        <line num="5" count="2" type="stmt"/>
-        <line num="18" count="2" type="stmt"/>
-        <line num="22" count="0" type="cond" truecount="0" falsecount="8"/>
-        <line num="23" count="0" type="stmt"/>
-        <line num="25" count="0" type="stmt"/>
-        <line num="27" count="0" type="stmt"/>
-        <line num="29" count="0" type="stmt"/>
-        <line num="41" count="0" type="cond" truecount="0" falsecount="3"/>
-        <line num="42" count="0" type="stmt"/>
-        <line num="45" count="0" type="stmt"/>
-        <line num="47" count="0" type="cond" truecount="0" falsecount="3"/>
-        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="53" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="54" count="0" type="stmt"/>
-        <line num="59" count="0" type="stmt"/>
-        <line num="60" count="0" type="stmt"/>
-        <line num="62" count="0" type="stmt"/>
-        <line num="63" count="0" type="stmt"/>
-        <line num="64" count="0" type="stmt"/>
-        <line num="69" count="0" type="stmt"/>
-        <line num="71" count="0" type="stmt"/>
-        <line num="72" count="0" type="cond" truecount="0" falsecount="11"/>
-        <line num="73" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="77" count="0" type="stmt"/>
-        <line num="79" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="80" count="0" type="stmt"/>
-        <line num="96" count="0" type="stmt"/>
-        <line num="109" count="0" type="stmt"/>
-        <line num="114" count="0" type="stmt"/>
-        <line num="119" count="0" type="stmt"/>
-        <line num="125" count="2" type="stmt"/>
-        <line num="126" count="0" type="stmt"/>
-        <line num="135" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="136" count="0" type="stmt"/>
-        <line num="137" count="0" type="stmt"/>
-        <line num="140" count="0" type="stmt"/>
-        <line num="145" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="146" count="0" type="stmt"/>
-        <line num="149" count="0" type="stmt"/>
-        <line num="151" count="0" type="stmt"/>
-        <line num="152" count="0" type="stmt"/>
-        <line num="154" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="155" count="0" type="stmt"/>
-        <line num="157" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="158" count="0" type="stmt"/>
-        <line num="167" count="0" type="stmt"/>
-        <line num="177" count="0" type="stmt"/>
-        <line num="178" count="0" type="stmt"/>
-        <line num="185" count="2" type="stmt"/>
-        <line num="186" count="0" type="stmt"/>
-        <line num="187" count="0" type="stmt"/>
-      </file>
-    </package>
-    <package name="services.firecrawl">
-      <metrics statements="10" coveredstatements="3" conditionals="4" coveredconditionals="0" methods="1" coveredmethods="0"/>
-      <file name="client.ts" path="/Users/rifky/InsightHub/services/firecrawl/client.ts">
-        <metrics statements="10" coveredstatements="3" conditionals="4" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="3" count="2" type="stmt"/>
-        <line num="5" count="2" type="stmt"/>
-        <line num="6" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="7" count="0" type="stmt"/>
-        <line num="8" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="10" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="11" count="0" type="stmt"/>
+        <metrics statements="35" coveredstatements="7" conditionals="28" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="14" count="0" type="stmt"/>
-        <line num="19" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="66" count="3" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="71" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="83" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="84" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="123" count="3" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="157" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="160" count="0" type="stmt"/>
       </file>
     </package>
     <package name="services.openai">
-      <metrics statements="60" coveredstatements="24" conditionals="47" coveredconditionals="3" methods="8" coveredmethods="2"/>
+      <metrics statements="47" coveredstatements="23" conditionals="43" coveredconditionals="3" methods="5" coveredmethods="2"/>
       <file name="client.ts" path="/Users/rifky/InsightHub/services/openai/client.ts">
         <metrics statements="7" coveredstatements="7" conditionals="1" coveredconditionals="1" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
@@ -695,7 +781,7 @@
         <line num="76" count="0" type="stmt"/>
       </file>
       <file name="summarize.ts" path="/Users/rifky/InsightHub/services/openai/summarize.ts">
-        <metrics statements="43" coveredstatements="10" conditionals="46" coveredconditionals="2" methods="4" coveredmethods="1"/>
+        <metrics statements="30" coveredstatements="9" conditionals="42" coveredconditionals="2" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -726,19 +812,110 @@
         <line num="141" count="0" type="stmt"/>
         <line num="147" count="0" type="stmt"/>
         <line num="154" count="0" type="stmt"/>
-        <line num="157" count="1" type="stmt"/>
-        <line num="162" count="0" type="stmt"/>
-        <line num="163" count="0" type="stmt"/>
-        <line num="166" count="0" type="stmt"/>
-        <line num="167" count="0" type="stmt"/>
-        <line num="168" count="0" type="stmt"/>
-        <line num="169" count="0" type="stmt"/>
-        <line num="172" count="0" type="stmt"/>
-        <line num="173" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="174" count="0" type="stmt"/>
-        <line num="176" count="0" type="stmt"/>
-        <line num="177" count="0" type="stmt"/>
-        <line num="182" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="services.rss">
+      <metrics statements="95" coveredstatements="48" conditionals="126" coveredconditionals="34" methods="12" coveredmethods="8"/>
+      <file name="importer.ts" path="/Users/rifky/InsightHub/services/rss/importer.ts">
+        <metrics statements="43" coveredstatements="10" conditionals="42" coveredconditionals="2" methods="2" coveredmethods="1"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="30" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="31" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="55" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="142" count="0" type="stmt"/>
+        <line num="143" count="0" type="cond" truecount="0" falsecount="2"/>
+      </file>
+      <file name="parser.ts" path="/Users/rifky/InsightHub/services/rss/parser.ts">
+        <metrics statements="52" coveredstatements="38" conditionals="84" coveredconditionals="32" methods="10" coveredmethods="7"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="31" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="7"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="cond" truecount="0" falsecount="9"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="97" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="99" count="5" type="stmt"/>
+        <line num="100" count="5" type="stmt"/>
+        <line num="101" count="5" type="stmt"/>
+        <line num="103" count="5" type="stmt"/>
+        <line num="107" count="15" type="stmt"/>
+        <line num="109" count="5" type="stmt"/>
+        <line num="110" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="113" count="3" type="stmt"/>
+        <line num="117" count="2" type="stmt"/>
+        <line num="133" count="2" type="stmt"/>
+        <line num="134" count="17" type="stmt"/>
+        <line num="135" count="17" type="stmt"/>
+        <line num="136" count="17" type="cond" truecount="1" falsecount="0"/>
+        <line num="137" count="6" type="stmt"/>
+        <line num="138" count="41" type="cond" truecount="3" falsecount="0"/>
+        <line num="139" count="1" type="stmt"/>
+        <line num="141" count="5" type="cond" truecount="0" falsecount="1"/>
+        <line num="142" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="143" count="3" type="stmt"/>
+        <line num="151" count="2" type="stmt"/>
+        <line num="152" count="18" type="cond" truecount="1" falsecount="0"/>
+        <line num="153" count="8" type="stmt"/>
+        <line num="174" count="2" type="stmt"/>
+        <line num="175" count="3" type="stmt"/>
+        <line num="176" count="3" type="stmt"/>
+        <line num="177" count="3" type="stmt"/>
+        <line num="189" count="30" type="stmt"/>
+        <line num="190" count="3" type="stmt"/>
+        <line num="191" count="3" type="stmt"/>
+        <line num="192" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="193" count="3" type="stmt"/>
+        <line num="194" count="3" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
       </file>
     </package>
   </project>

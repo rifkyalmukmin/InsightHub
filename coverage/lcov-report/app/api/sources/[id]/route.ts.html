@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.39% </span>
+                <span class="strong">82.6% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>35/43</span>
+                <span class='fraction'>38/46</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.16% </span>
+                <span class="strong">48.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>13/24</span>
+                <span class='fraction'>19/39</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.36% </span>
+                <span class="strong">86.36% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>35/41</span>
+                <span class='fraction'>38/44</span>
             </div>
         
             
@@ -182,7 +182,21 @@
 <a name='L117'></a><a href='#L117'>117</a>
 <a name='L118'></a><a href='#L118'>118</a>
 <a name='L119'></a><a href='#L119'>119</a>
-<a name='L120'></a><a href='#L120'>120</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -232,9 +246,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -305,6 +331,7 @@
 import prisma from '@/lib/db/prisma';
 import { getSessionUser, isAdmin } from '@/lib/auth/session';
 import { validateBody, articleIdSchema, updateSourceSchema } from '@/lib/validations';
+import { computeNextCrawlAt } from '@/lib/utils/schedule';
 &nbsp;
 export async function PUT(
   request: Request,
@@ -351,7 +378,14 @@ export async function PUT(
       );
     }
 &nbsp;
-    const { name, domain, url, description, category, status } = validation.data;
+    const { name, domain, url, feedUrl, description, category, status, autoRefresh } =
+      validation.data;
+&nbsp;
+    // When the schedule changes (or a feed is added/removed) reset the next
+    // run time so the new cadence starts from now.
+    const scheduleChanged =
+      autoRefresh !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >autoRefresh !== existing.autoRefresh;</span>
+    const feedChanged = feedUrl !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >feedUrl !== existing.feedUrl;</span>
 &nbsp;
     const source = await prisma.newsSource.update({
       where: { id },
@@ -359,9 +393,14 @@ export async function PUT(
         ...(name !== undefined &amp;&amp; { name }),
         ...(domain !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ domain })</span>,
         ...(url !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ url })</span>,
+        ...(feedUrl !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ feedUrl })</span>,
         ...(description !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ description })</span>,
         ...(category !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ category })</span>,
         ...(status !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ status })</span>,
+        ...(autoRefresh !== undefined &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{ autoRefresh })</span>,
+        ...((scheduleChanged || feedChanged) &amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >{</span>
+          nextCrawlAt: computeNextCrawlAt(autoRefresh ?? existing.autoRefresh),
+        }),
       },
     });
 &nbsp;
@@ -427,7 +466,7 @@ export async function DELETE(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-15T05:03:32.297Z
+                at 2026-08-15T12:43:33.733Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
