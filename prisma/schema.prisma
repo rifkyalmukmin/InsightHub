@@ -118,6 +118,11 @@ model Article {
   duplicateOf   String?
   status        String   @default("pending") // pending, crawled, summarized, error
 
+  // Full-text search vector (Indonesian). Populated by a DB trigger on
+  // INSERT/UPDATE of title/content — see migration add_article_fts_indonesian.
+  // Used only via raw SQL; not exposed through the Prisma Client API.
+  searchVector  Unsupported("tsvector")?
+
   source        NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   summary       Summary?

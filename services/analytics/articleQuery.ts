@@ -87,7 +87,9 @@ export async function buildArticleWhere(
 }
 
 /**
- * Full-text search using PostgreSQL tsvector when a query is provided.
+ * Full-text search using the indexed `searchVector` tsvector column
+ * (Indonesian config, kept in sync by a DB trigger). The GIN index on
+ * `searchVector` turns the lookup into an index scan instead of a seq scan.
  * Falls back to Prisma contains search on failure.
  */
 async function searchWithFullText(
@@ -103,14 +105,16 @@ async function searchWithFullText(
     const userFilter = userId
       ? Prisma.sql`AND ("userId" = ${userId} OR "userId" IS NULL)`
       : Prisma.sql`AND "userId" IS NULL`;
+    // websearch_to_tsquery supports quotes and OR/AND — safer than plainto.
+    // Config must match the one used to build "searchVector" ('indonesian').
+    const tsQuery = Prisma.sql`websearch_to_tsquery('indonesian', ${query})`;
 
     const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count
       FROM "Article"
       WHERE "isDuplicate" = false
       ${userFilter}
-      AND to_tsvector('english', coalesce("title", '') || ' ' || coalesce("content", ''))
-          @@ plainto_tsquery('english', ${query})
+      AND "searchVector" @@ ${tsQuery}
     `;
 
     const rows = await prisma.$queryRaw<{ id: string }[]>`
@@ -118,8 +122,7 @@ async function searchWithFullText(
       FROM "Article"
       WHERE "isDuplicate" = false
       ${userFilter}
-      AND to_tsvector('english', coalesce("title", '') || ' ' || coalesce("content", ''))
-          @@ plainto_tsquery('english', ${query})
+      AND "searchVector" @@ ${tsQuery}
       ORDER BY "createdAt" ${orderDir}
       LIMIT ${limit} OFFSET ${offset}
     `;
