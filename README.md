@@ -101,7 +101,7 @@ export FIRECRAWL_API_KEY="fc-..."
 docker-compose up -d
 ```
 
-> `NEXTAUTH_SECRET` is **required** (no default) — `docker-compose` will refuse to start without it.
+> `NEXTAUTH_SECRET` is **required** (no default) — `docker-compose` will refuse to build and start without it. It is passed as a build arg (the Next.js build evaluates the auth route module, which fails fast without a valid secret) and as a runtime env var for the app container.
 
 This starts:
 - **postgres** — Database on port 5432

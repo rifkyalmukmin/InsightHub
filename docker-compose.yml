@@ -18,7 +18,12 @@ services:
       retries: 5
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        # Required at build time too — `next build` evaluates the NextAuth route
+        # module, which fails fast without a valid secret.
+        NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?NEXTAUTH_SECRET is required. Generate one with: openssl rand -base64 32}"
     container_name: insighthub_app
     restart: unless-stopped
     ports:
@@ -34,7 +39,10 @@ services:
         condition: service_healthy
 
   worker:
-    build: .
+    build:
+      context: .
+      args:
+        NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?NEXTAUTH_SECRET is required. Generate one with: openssl rand -base64 32}"
     container_name: insighthub_worker
     restart: unless-stopped
     command: npx tsx scripts/worker.ts
