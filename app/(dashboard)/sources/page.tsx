@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Edit, RefreshCw, Globe, CheckCircle2, XCircle, Loader2, Newspaper } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils/format';
@@ -113,14 +114,14 @@ export default function SourcesPage() {
       setIsKompasOpen(false);
       setSelectedPresets([]);
       toast({
-        title: 'Kategori ditambahkan',
+        title: 'Sections added',
         description: data.message,
       });
     },
     onError: () => {
       toast({
-        title: 'Gagal menambahkan',
-        description: 'Tidak dapat menambahkan kategori Kompas.id.',
+        title: 'Failed to add',
+        description: 'Could not add the Kompas.id sections.',
         variant: 'destructive',
       });
     },
@@ -154,16 +155,16 @@ export default function SourcesPage() {
     onSuccess: () => {
       setIsPolling(true);
       toast({
-        title: 'Crawl dimulai',
-        description: 'Sedang mengambil berita. Halaman akan diperbarui otomatis.',
+        title: 'Crawl started',
+        description: 'Fetching articles. The page will update automatically.',
       });
       queryClient.invalidateQueries({ queryKey: ['sources'] });
       setIsCrawlOpen(false);
     },
     onError: () => {
       toast({
-        title: 'Crawl gagal',
-        description: 'Periksa FIRECRAWL_API_KEY dan URL sumber berita.',
+        title: 'Crawl failed',
+        description: 'Check your FIRECRAWL_API_KEY and the source URL.',
         variant: 'destructive',
       });
     },
@@ -203,9 +204,8 @@ export default function SourcesPage() {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="source-select">Select Source</Label>
-                    <select
+                    <Select
                       id="source-select"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={selectedSource || ''}
                       onChange={(e) => setSelectedSource(e.target.value)}
                     >
@@ -215,7 +215,7 @@ export default function SourcesPage() {
                           {s.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <Button
                     onClick={handleCrawl}
@@ -244,11 +244,11 @@ export default function SourcesPage() {
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
                 <DialogHeader>
-                  <DialogTitle>Kategori Kompas.id</DialogTitle>
+                  <DialogTitle>Kompas.id Sections</DialogTitle>
                 </DialogHeader>
                 <p className="text-sm text-muted-foreground">
-                  Pilih rubrik berita untuk di-crawl. Gunakan <strong>Berita Terbaru</strong> atau{' '}
-                  <strong>Nasional</strong> untuk hasil terbaik.
+                  Choose a news section to crawl. Use <strong>Latest News</strong> or{' '}
+                  <strong>National</strong> for the best results.
                 </p>
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
                   {presetsLoading ? (
@@ -284,7 +284,7 @@ export default function SourcesPage() {
                             <p className="text-xs text-muted-foreground">{preset.description}</p>
                             {preset.added && (
                               <Badge variant="secondary" className="text-[10px] mt-1">
-                                Sudah ditambahkan
+                                Already added
                               </Badge>
                             )}
                           </div>
@@ -306,7 +306,7 @@ export default function SourcesPage() {
                     }}
                     disabled={presetsLoading}
                   >
-                    Pilih Semua
+                    Select All
                   </Button>
                   <Button
                     className="flex-1"
@@ -320,7 +320,7 @@ export default function SourcesPage() {
                     {addKompasPresets.isPending && (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     )}
-                    Tambah ({selectedPresets.length})
+                    Add ({selectedPresets.length})
                   </Button>
                 </div>
               </DialogContent>
@@ -406,13 +406,13 @@ export default function SourcesPage() {
           <Card>
             <CardContent className="text-center py-16">
               <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Gagal memuat sumber</h3>
+              <h3 className="text-lg font-semibold mb-2">Failed to load sources</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.
+                Too many requests. Wait a moment and try again.
               </p>
               <Button variant="outline" onClick={() => refetch()}>
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Coba Lagi
+                Try Again
               </Button>
             </CardContent>
           </Card>
@@ -422,7 +422,7 @@ export default function SourcesPage() {
               <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No sources yet</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Tambahkan kategori Kompas.id atau sumber berita lainnya.
+                Add Kompas.id sections or other news sources.
               </p>
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <Button onClick={() => setIsKompasOpen(true)}>

@@ -94,8 +94,8 @@ export const POST = withRateLimit(async (request: Request) => {
       data: { created, skipped },
       message:
         created.length > 0
-          ? `${created.length} sumber Kompas.id ditambahkan`
-          : 'Semua kategori sudah ada',
+          ? `${created.length} Kompas.id section${created.length === 1 ? '' : 's'} added`
+          : 'All sections already added',
     });
   } catch {
     return NextResponse.json(

@@ -4,7 +4,7 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { Search, Grid3X3, List, Filter, X } from 'lucide-react';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -146,10 +146,10 @@ export function ArticleFeed() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <select
+          <Select
             value={selectedTopic}
             onChange={(e) => handleTopicChange(e.target.value)}
-            className="flex h-9 w-[160px] appearance-none items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 w-[160px]"
           >
             <option value="">All Topics</option>
             {topicsData?.map((topic: { slug: string; name: string }) => (
@@ -157,18 +157,18 @@ export function ArticleFeed() {
                 {topic.name}
               </option>
             ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
             value={selectedSentiment}
             onChange={(e) => handleSentimentChange(e.target.value as '' | 'positive' | 'neutral' | 'negative')}
-            className="flex h-9 w-[140px] appearance-none items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 w-[140px]"
           >
             <option value="">Sentiment</option>
             <option value="positive">Positive</option>
             <option value="neutral">Neutral</option>
             <option value="negative">Negative</option>
-          </select>
+          </Select>
 
           <div className="flex items-center border rounded-md">
             <Button

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Activity, Clock, FileText, Eye } from 'lucide-react';
 import { AnalyticsCharts } from '@/components/features/analytics/lazy-analytics';
+import { Select } from '@/components/ui/select';
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = React.useState('7d');
@@ -23,16 +24,16 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-muted-foreground">Track your news consumption patterns</p>
-        <select
+        <Select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value)}
-          className="flex h-10 appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 w-[150px]"
+          className="h-10 w-[150px]"
         >
           <option value="24h">Last 24h</option>
           <option value="7d">Last 7 days</option>
           <option value="30d">Last 30 days</option>
           <option value="all">All time</option>
-        </select>
+        </Select>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
