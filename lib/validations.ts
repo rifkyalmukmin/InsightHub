@@ -108,6 +108,12 @@ export const chatSchema = z.object({
   stream: z.boolean().default(false),
 });
 
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const markAllReadSchema = z.object({
+  markAllRead: z.literal(true),
+});
+
 // ─── Register (already exists, kept here for consistency) ────────────────────
 
 export const registerSchema = z.object({

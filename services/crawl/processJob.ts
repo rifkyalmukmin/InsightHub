@@ -116,6 +116,19 @@ export async function executeCrawlJob(
     pagesTotal: pages.length,
   });
 
+  // Notify the source owner that the crawl finished (only user-owned sources).
+  if (job.source?.userId && processed > 0) {
+    await prisma.notification.create({
+      data: {
+        userId: job.source.userId,
+        type: 'alert',
+        title: `Crawl complete: ${job.source.name}`,
+        message: `${processed} new article${processed === 1 ? '' : 's'} added from ${job.source.domain}`,
+        actionUrl: '/news',
+      },
+    });
+  }
+
   logger.info({ jobId: job.id, processed, total: pages.length }, 'Crawl job completed');
 }
 
@@ -179,11 +192,3 @@ export async function processCrawlJobById({ jobId, logId }: ProcessJobOptions): 
   }
 }
 
-/**
- * Fire-and-forget background processing (safe for Next.js dev server).
- */
-export function triggerCrawlJobProcessing(jobId: string, logId?: string): void {
-  processCrawlJobById({ jobId, logId }).catch((err) => {
-    logError('Background crawl', err, { jobId });
-  });
-}

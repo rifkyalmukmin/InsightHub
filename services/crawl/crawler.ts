@@ -3,7 +3,6 @@ import prisma from '@/lib/db/prisma';
 import { getDomain } from '@/lib/utils/format';
 import { slugify } from '@/lib/utils/slugify';
 import { enqueueCrawlJob, completeCrawlJob, failCrawlJob } from '@/lib/utils/jobQueue';
-import { triggerCrawlJobProcessing } from '@/services/crawl/processJob';
 
 export interface CrawlJob {
   sourceId: string;
@@ -16,7 +15,7 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
   jobId: string;
   logId: string;
 }> {
-  const { url, sourceId, maxPages = 10, depth = 1, userId } = options;
+  const { url, sourceId, maxPages = 10, depth = 1 } = options;
 
   // Create crawl log
   const log = await prisma.crawlLog.create({
@@ -27,26 +26,39 @@ export async function startCrawlJob(options: CrawlOptions & { sourceId: string; 
     },
   });
 
-  // Enqueue job for background processing (persistent queue)
-  const result = await enqueueCrawlJob({
-    sourceId,
-    url,
-    maxPages,
-    depth,
-  });
+  try {
+    // Enqueue job for background processing (persistent queue). Processing is
+    // done by the worker (`npm run worker`) — deliberately NOT fire-and-forget
+    // here: on serverless (Vercel) an un-awaited task is killed once the
+    // response is sent, which would leave the job stuck in "running" forever.
+    // Jobs abandoned by a crashed worker are recovered by dequeueCrawlJob.
+    const result = await enqueueCrawlJob({
+      sourceId,
+      url,
+      maxPages,
+      depth,
+    });
 
-  // Update crawl log with job reference
-  await prisma.crawlLog.update({
-    where: { id: log.id },
-    data: {
-      metadata: { jobId: result.jobId },
-    },
-  });
+    // Update crawl log with job reference
+    await prisma.crawlLog.update({
+      where: { id: log.id },
+      data: {
+        metadata: { jobId: result.jobId },
+      },
+    });
 
-  // Process in background — no separate worker required for local dev
-  triggerCrawlJobProcessing(result.jobId, log.id);
-
-  return { jobId: result.jobId, logId: log.id };
+    return { jobId: result.jobId, logId: log.id };
+  } catch (error) {
+    // Enqueue failed — don't leave a dangling "running" log
+    await prisma.crawlLog.update({
+      where: { id: log.id },
+      data: {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Failed to enqueue crawl job',
+      },
+    });
+    throw error;
+  }
 }
 
 async function processCrawlResults(

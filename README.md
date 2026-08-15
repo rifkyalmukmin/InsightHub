@@ -74,6 +74,16 @@ npm run build     # Production build
 | Redis | `REDIS_URL` | Faster rate limiting (falls back to PostgreSQL) |
 | SMTP | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Email digest delivery |
 
+### Background Crawl Worker
+
+Crawling is processed by the worker (`npm run worker`) — the API only enqueues a job and returns immediately, so the worker must be running for crawls to complete. If a worker/serverless process dies mid-crawl, the job is automatically recovered: after `JOB_STALE_TIMEOUT_MS` (default `900000`, 15 min) a stuck `running` job is reclaimed as a retry, and once `maxAttempts` (default 3) are exhausted it is marked failed.
+
+| Env Variable | Default | Meaning |
+|--------------|---------|---------|
+| `WORKER_POLL_INTERVAL_MS` | `5000` | How often the worker polls for jobs |
+| `WORKER_MAX_CONCURRENT` | `3` | Max jobs processed at once |
+| `JOB_STALE_TIMEOUT_MS` | `900000` | Stuck `running` job recovery timeout (ms) |
+
 ### Daily Usage Quotas
 
 Summarize, crawl, chat, and digest calls hit paid APIs (OpenAI / Firecrawl), so each user gets a **daily per-user quota** enforced before the API is called (HTTP 429 when exceeded):
