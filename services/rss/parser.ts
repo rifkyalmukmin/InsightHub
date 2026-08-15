@@ -47,16 +47,19 @@ export async function parseFeedUrl(feedUrl: string): Promise<ParsedFeed> {
 
   const feed = await parser.parseURL(feedUrl);
 
-  const items: FeedItem[] = (feed.items ?? []).map((item) => ({
-    title: (item.title ?? '').trim(),
-    link: (item.link ?? '').trim(),
-    content: htmlToText(item.content || item['content:encoded'] || item.contentSnippet || ''),
-    contentSnippet: item.contentSnippet ? htmlToText(item.contentSnippet) : undefined,
-    author: item.creator || item.author || undefined,
-    pubDate: item.isoDate || item.pubDate || undefined,
-    image: extractImage(item),
-    categories: Array.isArray(item.categories) ? item.categories.map(String) : undefined,
-  }));
+  const items: FeedItem[] = (feed.items ?? []).map((item) => {
+    const contentHtml = item.content || item['content:encoded'] || '';
+    return {
+      title: extractTitleFromHtml(contentHtml, (item.title ?? '').trim()),
+      link: (item.link ?? '').trim(),
+      content: htmlToText(contentHtml || item.contentSnippet || ''),
+      contentSnippet: item.contentSnippet ? htmlToText(item.contentSnippet) : undefined,
+      author: item.creator || item.author || undefined,
+      pubDate: item.isoDate || item.pubDate || undefined,
+      image: extractImage(item),
+      categories: Array.isArray(item.categories) ? item.categories.map(String) : undefined,
+    };
+  });
 
   return {
     title: feed.title?.trim() || 'Untitled Feed',
@@ -75,6 +78,69 @@ function extractImage(item: Parser.Item): string | undefined {
   const media = (item as unknown as { media?: { $?: { url?: string } } }).media;
   if (media?.$?.url) return media.$.url;
   return undefined;
+}
+
+/**
+ * Best-effort title extraction.
+ *
+ * Some feeds (e.g. BBC live sections) publish items whose `<title>` is a
+ * generic section label ("Tech Now", "Tech Life") while the actual headline
+ * lives inside the description HTML as a heading or link. When that happens
+ * we prefer the more specific text from the content over the generic title.
+ *
+ * Candidates are taken in priority order: first heading (h1–h6), first anchor
+ * text, then the first image `alt` — BBC items embed the headline in all
+ * three. A candidate only wins if it is meaningfully longer than the feed
+ * title, so real feed titles are never replaced by short boilerplate.
+ */
+export function extractTitleFromHtml(html: string, fallback: string): string {
+  if (!html) return fallback;
+
+  const heading = html.match(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/i);
+  const anchor = html.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
+  const imageAlt = html.match(/<img[^>]*\s+alt\s*=\s*["']([^"']+)["']/i);
+
+  const candidates = [
+    heading?.[1] ?? '',
+    anchor?.[1] ?? '',
+    imageAlt?.[1] ?? '',
+  ].map((raw) => htmlToText(raw));
+
+  for (const candidate of candidates) {
+    if (isBetterTitle(candidate, fallback)) return candidate;
+  }
+
+  return fallback;
+}
+
+/** Common link labels that appear in descriptions but are never headlines. */
+const BOILERPLATE_TITLES = [
+  'continue reading',
+  'read more',
+  'read full story',
+  'full story',
+  'keep reading',
+  'learn more',
+  'view more',
+  'click here',
+];
+
+/**
+ * True when `candidate` is a more specific headline than the feed title —
+ * long enough to be a real headline, not boilerplate link text, and clearly
+ * longer than the generic section label it would replace.
+ */
+export function isBetterTitle(candidate: string, fallback: string): boolean {
+  const c = candidate.trim();
+  const f = fallback.trim();
+  if (c.length < 12) return false;
+  const cLower = c.toLowerCase();
+  if (BOILERPLATE_TITLES.some((label) => cLower === label || cLower.startsWith(`${label} `))) {
+    return false;
+  }
+  if (f.length === 0) return c.length > 0;
+  if (cLower === f.toLowerCase()) return false;
+  return c.length > f.length + 3;
 }
 
 /**

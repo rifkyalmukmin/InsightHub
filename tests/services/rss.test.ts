@@ -1,4 +1,9 @@
-import { htmlToText, normalizeArticleUrl } from '@/services/rss/parser';
+import {
+  htmlToText,
+  normalizeArticleUrl,
+  extractTitleFromHtml,
+  isBetterTitle,
+} from '@/services/rss/parser';
 import { importRssFeed } from '@/services/rss/importer';
 import {
   computeNextCrawlAt,
@@ -47,6 +52,54 @@ describe('RSS parser helpers', () => {
     expect(normalizeArticleUrl('https://example.com/story/1/')).toBe(
       'https://example.com/story/1'
     );
+  });
+});
+
+describe('RSS title extraction', () => {
+  it('extracts the real headline from a heading when the feed title is generic', () => {
+    const html =
+      '<a href="https://example.com/a"><img src="x.jpg"/></a>' +
+      '<h3><a href="https://example.com/a">Inside the scramble to save the tech sector from a power crunch</a></h3>';
+    expect(extractTitleFromHtml(html, 'Tech Now')).toBe(
+      'Inside the scramble to save the tech sector from a power crunch'
+    );
+  });
+
+  it('keeps the feed title when the content has no headings or links', () => {
+    const html = 'Meta boss Mark Zuckerberg is the latest to pen a long letter about AI.';
+    expect(extractTitleFromHtml(html, 'Why tech bosses share manifestos')).toBe(
+      'Why tech bosses share manifestos'
+    );
+  });
+
+  it('keeps a real feed title even when the content mentions a similar heading', () => {
+    const html = '<h2>Why tech bosses share manifestos about AI</h2>';
+    expect(extractTitleFromHtml(html, 'Why tech bosses share manifestos about AI')).toBe(
+      'Why tech bosses share manifestos about AI'
+    );
+  });
+
+  it('ignores short boilerplate anchors like "Continue reading"', () => {
+    const html = '<a href="https://example.com/a">Continue reading</a>';
+    expect(extractTitleFromHtml(html, 'Tech Now')).toBe('Tech Now');
+  });
+
+  it('falls back when there is no HTML content', () => {
+    expect(extractTitleFromHtml('', 'Untitled')).toBe('Untitled');
+  });
+
+  it('can use an image alt text when no heading or anchor is present', () => {
+    const html = '<img src="x.jpg" alt="A breakthrough in fusion energy research" />';
+    expect(extractTitleFromHtml(html, 'Tech Life')).toBe(
+      'A breakthrough in fusion energy research'
+    );
+  });
+
+  it('isBetterTitle rejects short, identical, or equal-length candidates', () => {
+    expect(isBetterTitle('Real headline here', 'Tech Now')).toBe(true);
+    expect(isBetterTitle('short', 'Tech Now')).toBe(false);
+    expect(isBetterTitle('Tech Now', 'Tech Now')).toBe(false);
+    expect(isBetterTitle('Same length title', 'Same length title')).toBe(false);
   });
 });
 

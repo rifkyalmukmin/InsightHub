@@ -24,6 +24,21 @@ export default function SourcesPage() {
   const [isKompasOpen, setIsKompasOpen] = React.useState(false);
   const [selectedPresets, setSelectedPresets] = React.useState<string[]>([]);
   const [selectedSource, setSelectedSource] = React.useState<string | null>(null);
+  const [editSource, setEditSource] = React.useState<{
+    id: string;
+    name: string;
+    url: string;
+    feedUrl: string | null;
+    autoRefresh: string;
+    status: string;
+  } | null>(null);
+  const [editForm, setEditForm] = React.useState({
+    name: '',
+    url: '',
+    feedUrl: '',
+    autoRefresh: 'none',
+    status: 'active',
+  });
   const [formData, setFormData] = React.useState({
     name: '',
     domain: '',
@@ -33,6 +48,24 @@ export default function SourcesPage() {
     category: '',
     autoRefresh: 'none',
   });
+
+  const openEdit = (source: {
+    id: string;
+    name: string;
+    url: string;
+    feedUrl: string | null;
+    autoRefresh: string;
+    status: string;
+  }) => {
+    setEditForm({
+      name: source.name,
+      url: source.url,
+      feedUrl: source.feedUrl ?? '',
+      autoRefresh: source.autoRefresh,
+      status: source.status,
+    });
+    setEditSource(source);
+  };
 
   const { data: sources, isLoading, isError, refetch } = useQuery({
     queryKey: ['sources'],
@@ -95,6 +128,57 @@ export default function SourcesPage() {
       }
     },
   });
+
+  const updateSource = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        name: string;
+        url: string;
+        feedUrl: string | null;
+        autoRefresh: string;
+        status: string;
+      };
+    }) => {
+      const res = await fetch(`/api/sources/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.error || 'Failed to update source');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sources'] });
+      setEditSource(null);
+      toast({ title: 'Source updated', description: 'Auto-refresh schedule saved.' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to update source',
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editSource) return;
+    // Empty feed URL means "no feed" — the API expects null, not '' (which
+    // would fail the URL validation).
+    const data = {
+      ...editForm,
+      feedUrl: editForm.feedUrl.trim() === '' ? null : editForm.feedUrl.trim(),
+    };
+    updateSource.mutate({ id: editSource.id, data });
+  };
 
   const deleteSource = useMutation({
     mutationFn: async (id: string) => {
@@ -440,6 +524,82 @@ export default function SourcesPage() {
                 </form>
               </DialogContent>
             </Dialog>
+
+            <Dialog open={editSource !== null} onOpenChange={(open) => !open && setEditSource(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Source</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleEditSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-name">Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-url">URL</Label>
+                    <Input
+                      id="edit-url"
+                      value={editForm.url}
+                      onChange={(e) => setEditForm({ ...editForm, url: e.target.value })}
+                      placeholder="https://techcrunch.com"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-feedUrl">RSS Feed URL (optional)</Label>
+                    <Input
+                      id="edit-feedUrl"
+                      value={editForm.feedUrl}
+                      onChange={(e) => setEditForm({ ...editForm, feedUrl: e.target.value })}
+                      placeholder="https://techcrunch.com/feed/"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Empty = no feed (uses Firecrawl crawl instead).
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-autoRefresh">Auto-refresh</Label>
+                    <Select
+                      id="edit-autoRefresh"
+                      value={editForm.autoRefresh}
+                      onChange={(e) => setEditForm({ ...editForm, autoRefresh: e.target.value })}
+                    >
+                      <option value="none">Off</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Re-syncs automatically on schedule (requires the crawl worker).
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-status">Status</Label>
+                    <Select
+                      id="edit-status"
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    >
+                      <option value="active">Active</option>
+                      <option value="paused">Paused</option>
+                    </Select>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={updateSource.isPending}
+                    className="w-full"
+                  >
+                    {updateSource.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Changes
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -495,6 +655,7 @@ export default function SourcesPage() {
               autoRefresh: string;
               status: string;
               lastCrawlAt: string | null;
+              nextCrawlAt: string | null;
               _count: { articles: number };
               crawlLogs: { status: string; pagesCrawled: number | null; pagesTotal: number | null; createdAt: string; error: string | null }[];
             }) => (
@@ -538,6 +699,11 @@ export default function SourcesPage() {
                               {source.autoRefresh}
                             </Badge>
                           )}
+                          {source.autoRefresh !== 'none' && source.nextCrawlAt && (
+                            <span className="text-xs text-muted-foreground">
+                              next: {formatRelativeTime(source.nextCrawlAt)}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -564,6 +730,14 @@ export default function SourcesPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEdit(source)}
+                        title="Edit source"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
