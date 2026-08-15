@@ -6,9 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Send, Bot, User, Loader2, RefreshCw, Plus } from 'lucide-react';
 import { SafeMarkdown } from '@/components/ui/safe-markdown';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
 import { motion } from 'framer-motion';
 
@@ -43,11 +43,11 @@ export default function ChatPage() {
     },
   });
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  /** Send a prompt — used by the form submit and the quick-suggestion chips. */
+  const sendPrompt = async (raw: string) => {
+    const userMessage = raw.trim();
+    if (!userMessage || isLoading) return;
 
-    const userMessage = input.trim();
     setInput('');
     setIsLoading(true);
 
@@ -89,6 +89,11 @@ export default function ChatPage() {
     }
   };
 
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendPrompt(input);
+  };
+
   const handleNewConversation = () => {
     setMessages([]);
     setConversationId(null);
@@ -126,15 +131,22 @@ export default function ChatPage() {
                     answer questions based on the content.
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center mt-6">
-                    <Badge variant="outline" className="cursor-pointer text-sm py-2 px-3">
-                      Summarize AI news this week
-                    </Badge>
-                    <Badge variant="outline" className="cursor-pointer text-sm py-2 px-3">
-                      What are the top stories?
-                    </Badge>
-                    <Badge variant="outline" className="cursor-pointer text-sm py-2 px-3">
-                      Compare recent startup funding
-                    </Badge>
+                    {['Summarize AI news this week', 'What are the top stories?', 'Compare recent startup funding'].map(
+                      (suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => sendPrompt(suggestion)}
+                          disabled={isLoading}
+                          className={cn(
+                            badgeVariants({ variant: 'outline' }),
+                            'cursor-pointer text-sm py-2 px-3 transition-colors hover:bg-accent'
+                          )}
+                        >
+                          {suggestion}
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               )}

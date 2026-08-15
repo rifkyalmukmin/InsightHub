@@ -8,6 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Select } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Edit, RefreshCw, Globe, CheckCircle2, XCircle, Loader2, Newspaper } from 'lucide-react';
@@ -24,6 +34,7 @@ export default function SourcesPage() {
   const [isKompasOpen, setIsKompasOpen] = React.useState(false);
   const [selectedPresets, setSelectedPresets] = React.useState<string[]>([]);
   const [selectedSource, setSelectedSource] = React.useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
   const [editSource, setEditSource] = React.useState<{
     id: string;
     name: string;
@@ -188,6 +199,14 @@ export default function SourcesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sources'] });
+      toast({ title: 'Source deleted' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to delete source',
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -600,6 +619,38 @@ export default function SourcesPage() {
                 </form>
               </DialogContent>
             </Dialog>
+
+            <AlertDialog
+              open={deleteTarget !== null}
+              onOpenChange={(open) => !open && setDeleteTarget(null)}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete source?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete{' '}
+                    <span className="font-semibold text-foreground">{deleteTarget?.name}</span>{' '}
+                    and all articles crawled from it. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={deleteSource.isPending}
+                    onClick={() => {
+                      if (deleteTarget) deleteSource.mutate(deleteTarget.id);
+                      setDeleteTarget(null);
+                    }}
+                  >
+                    {deleteSource.isPending && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
@@ -750,7 +801,8 @@ export default function SourcesPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deleteSource.mutate(source.id)}
+                        onClick={() => setDeleteTarget({ id: source.id, name: source.name })}
+                        title="Delete source"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>

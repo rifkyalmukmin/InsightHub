@@ -8,14 +8,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Tags as TagsIcon, Trash2, FileText } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Tags as TagsIcon, Trash2, FileText, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TopicsPage() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const { toast } = useToast();
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [newTopic, setNewTopic] = React.useState({ name: '', description: '', color: '#3B82F6' });
+  const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
 
   const { data: topics, isLoading } = useQuery({
     queryKey: ['topics'],
@@ -52,6 +67,14 @@ export default function TopicsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['topics'] });
+      toast({ title: 'Topic deleted' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to delete topic',
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -120,6 +143,35 @@ export default function TopicsPage() {
           </Dialog>
         </div>
 
+        <AlertDialog
+          open={deleteTarget !== null}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete topic?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will remove <span className="font-semibold text-foreground">{deleteTarget?.name}</span>{' '}
+                from all articles it is linked to. The articles themselves are not deleted.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteTopic.isPending}
+                onClick={() => {
+                  if (deleteTarget) deleteTopic.mutate(deleteTarget.id);
+                  setDeleteTarget(null);
+                }}
+              >
+                {deleteTopic.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -169,6 +221,17 @@ export default function TopicsPage() {
                           <FileText className="h-3 w-3 mr-1" />
                           {topic._count.articles}
                         </Badge>
+                        {session?.user?.role === 'admin' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => setDeleteTarget({ id: topic.id, name: topic.name })}
+                            title="Delete topic"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
