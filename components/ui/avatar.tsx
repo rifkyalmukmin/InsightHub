@@ -13,8 +13,9 @@ const Avatar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElem
 Avatar.displayName = 'Avatar';
 
 const AvatarImage = React.forwardRef<HTMLImageElement, React.ImgHTMLAttributes<HTMLImageElement>>(
-  ({ className, ...props }, ref) => (
-    <img ref={ref} className={cn('aspect-square h-full w-full', className)} {...props} />
+  // alt defaults to decorative; callers with meaningful avatars should pass one
+  ({ className, alt = '', ...props }, ref) => (
+    <img ref={ref} alt={alt} className={cn('aspect-square h-full w-full', className)} {...props} />
   )
 );
 AvatarImage.displayName = 'AvatarImage';

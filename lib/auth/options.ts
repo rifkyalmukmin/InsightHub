@@ -4,7 +4,10 @@ import GitHub from 'next-auth/providers/github';
 import Credentials from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 import prisma from '@/lib/db/prisma';
+import { logger } from '@/lib/logger';
 import { assertSecureAuthSecret } from '@/lib/utils/env';
+import type { JWT } from 'next-auth/jwt';
+import { resolveJwtToken, type JwtResolveParams } from '@/lib/auth/jwt';
 
 // Fail fast if NEXTAUTH_SECRET is missing or a known default value.
 assertSecureAuthSecret();
@@ -71,42 +74,25 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user, account }: { token: any; user: any; account: any }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-
-      // OAuth providers use provider IDs as sub — sync Prisma user ID after upsert
-      if (
-        account &&
-        (account.provider === 'google' || account.provider === 'github') &&
-        token.email
-      ) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email as string },
-          select: { id: true, role: true },
-        });
-        if (dbUser) {
-          token.sub = dbUser.id;
-          token.id = dbUser.id;
-          token.role = dbUser.role;
-        }
-      }
-
-      if (!token.role && token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { role: true },
-        });
-        token.role = dbUser?.role ?? 'user';
-      }
-      return token;
+    async jwt(params) {
+      // Never lets a provider id or a deleted-user id reach the session (see
+      // lib/auth/jwt.ts). Returning null is how the session route invalidates
+      // a token (it clears the cookie and returns an empty session), turning
+      // the previous opaque FK 500s on writes into a clean 401. next-auth's
+      // types omit `null`, so it is cast at this boundary.
+      return resolveJwtToken(params as JwtResolveParams) as Promise<JWT>;
     },
     async signIn({ user, account }: { user: any; account: any }) {
       if (account?.provider === 'google' || account?.provider === 'github') {
+        // Email is the unique key for accounts — without it the user row would
+        // be created with a null email that the jwt callback can never resolve
+        // back to, leaking the provider id into the session. Reject instead.
+        if (!user.email) {
+          logger.warn({ provider: account.provider }, 'OAuth sign-in rejected: no email');
+          return false;
+        }
         const dbUser = await prisma.user.upsert({
-          where: { email: user.email || '' },
+          where: { email: user.email },
           create: {
             email: user.email,
             name: user.name,
